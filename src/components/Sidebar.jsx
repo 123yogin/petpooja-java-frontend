@@ -16,6 +16,7 @@ export default function Sidebar() {
     { path: "/inventory", label: "Inventory", roles: ["ADMIN"] },
     { path: "/suppliers", label: "Suppliers", roles: ["ADMIN"] },
     { path: "/purchase-orders", label: "Purchase Orders", roles: ["ADMIN"] },
+    { path: "/customers", label: "Customers", roles: ["ADMIN", "CASHIER", "MANAGER"] },
     { path: "/tasks", label: "Tasks", roles: ["ADMIN", "MANAGER", "CASHIER", "KITCHEN"] },
     { path: "/analytics", label: "Analytics", roles: ["ADMIN", "MANAGER"] },
   ];
@@ -27,13 +28,15 @@ export default function Sidebar() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="w-64 bg-white border-r border-gray-100 min-h-screen fixed left-0 top-0">
-      <div className="p-6 border-b border-gray-100">
+    <div className="w-64 bg-white border-r border-gray-100 h-screen fixed left-0 top-0 flex flex-col z-30">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-100 flex-shrink-0">
         <h1 className="text-xl font-semibold text-gray-900">Petpooja</h1>
         <p className="text-xs text-gray-500 mt-0.5">Restaurant POS</p>
       </div>
       
-      <nav className="p-3 space-y-1">
+      {/* Navigation - Scrollable */}
+      <nav className="flex-1 overflow-y-auto p-3 space-y-1 pb-20">
         {filteredMenuItems.map((item) => (
           <Link
             key={item.path}
@@ -49,7 +52,8 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="absolute bottom-0 w-full p-4 border-t border-gray-100">
+      {/* User Info - Fixed at bottom */}
+      <div className="p-4 border-t border-gray-100 flex-shrink-0 bg-white">
         <div className="flex items-center space-x-3 px-3 py-2">
           <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center text-white text-xs font-semibold">
             {user?.role?.charAt(0) || "U"}

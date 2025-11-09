@@ -14,6 +14,7 @@ import Inventory from "./pages/Inventory";
 import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import Tasks from "./pages/Tasks";
+import Customers from "./pages/Customers";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -108,6 +109,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CASHIER", "KITCHEN"]}>
               <Tasks />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/customers" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "CASHIER", "MANAGER"]}>
+              <Customers />
             </ProtectedRoute>
           }
         />

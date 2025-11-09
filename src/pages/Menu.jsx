@@ -6,7 +6,7 @@ import Layout from "../components/Layout";
 export default function Menu() {
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
-  const [form, setForm] = useState({ name: "", category: "", price: "", description: "", available: true });
+  const [form, setForm] = useState({ name: "", category: "", price: "", description: "", available: true, hsnCode: "", taxRate: "" });
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -132,8 +132,10 @@ export default function Menu() {
         ...form,
         price: parseFloat(form.price),
         description: form.description || null,
+        hsnCode: form.hsnCode || null,
+        taxRate: form.taxRate ? parseFloat(form.taxRate) : 5.0,
       });
-      setForm({ name: "", category: "", price: "", description: "", available: true });
+      setForm({ name: "", category: "", price: "", description: "", available: true, hsnCode: "", taxRate: "" });
       toast.success("Menu item added!");
       loadItems();
     } catch (err) {
@@ -148,8 +150,10 @@ export default function Menu() {
         ...form,
         price: parseFloat(form.price),
         description: form.description || null,
+        hsnCode: form.hsnCode || null,
+        taxRate: form.taxRate ? parseFloat(form.taxRate) : 5.0,
       });
-      setForm({ name: "", category: "", price: "", description: "", available: true });
+      setForm({ name: "", category: "", price: "", description: "", available: true, hsnCode: "", taxRate: "" });
       setEditingId(null);
       toast.success("Menu item updated!");
       loadItems();
@@ -166,12 +170,14 @@ export default function Menu() {
       price: item.price?.toString() || "",
       description: item.description || "",
       available: item.available !== undefined ? item.available : true,
+      hsnCode: item.hsnCode || "",
+      taxRate: item.taxRate?.toString() || "5.0",
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setForm({ name: "", category: "", price: "", description: "", available: true });
+    setForm({ name: "", category: "", price: "", description: "", available: true, hsnCode: "", taxRate: "" });
   };
 
   const deleteItem = async (id) => {
@@ -303,6 +309,24 @@ export default function Menu() {
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
                 required
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input
+                placeholder="HSN Code (e.g., 996331)"
+                className="input-field"
+                value={form.hsnCode}
+                onChange={(e) => setForm({ ...form, hsnCode: e.target.value })}
+              />
+              <input
+                placeholder="Tax Rate % (default: 5.0)"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                className="input-field"
+                value={form.taxRate}
+                onChange={(e) => setForm({ ...form, taxRate: e.target.value })}
               />
             </div>
             <textarea
@@ -449,6 +473,8 @@ export default function Menu() {
                       <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                       <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                       <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                      <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">HSN Code</th>
+                      <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Tax Rate</th>
                       <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Available</th>
                       <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -476,6 +502,8 @@ export default function Menu() {
                           <span className="badge bg-gray-100 text-gray-700">{i.category}</span>
                         </td>
                         <td className="p-3 font-medium text-gray-900">₹{i.price?.toFixed(2) || "0.00"}</td>
+                        <td className="p-3 text-sm text-gray-600">{i.hsnCode || "N/A"}</td>
+                        <td className="p-3 text-sm text-gray-600">{i.taxRate != null ? `${i.taxRate}%` : "5.0%"}</td>
                         <td className="p-3">
                           <button
                             onClick={() => toggleAvailability(i.id)}

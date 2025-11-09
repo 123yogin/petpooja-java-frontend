@@ -10,9 +10,11 @@ export default function Billing() {
   const userRole = user?.role || "";
   const [orders, setOrders] = useState([]);
   const [bills, setBills] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [orderBillsMap, setOrderBillsMap] = useState({}); // Map orderId -> billId
   const [selectedBill, setSelectedBill] = useState(null);
   const [invoiceText, setInvoiceText] = useState("");
+  const [selectedCustomerForOrder, setSelectedCustomerForOrder] = useState({}); // Map orderId -> customerId
 
   const loadOrders = async () => {
     try {
@@ -47,18 +49,36 @@ export default function Billing() {
     await loadOrders();
   };
 
+  const loadCustomers = async () => {
+    try {
+      const res = await API.get("/customers/active");
+      setCustomers(res.data);
+    } catch (err) {
+      console.log("Customers endpoint not available");
+    }
+  };
+
   useEffect(() => {
     loadBills();
+    loadCustomers();
   }, []);
 
   const generateBill = async (orderId) => {
     try {
-      const res = await API.post(`/billing/generate/${orderId}`);
+      const payload = {};
+      if (selectedCustomerForOrder[orderId]) {
+        payload.customerId = selectedCustomerForOrder[orderId];
+      }
+      const res = await API.post(`/billing/generate/${orderId}`, payload);
       toast.success("Bill generated successfully!");
       setOrderBillsMap({ ...orderBillsMap, [orderId]: res.data.id });
       loadOrders();
       // Automatically show the generated bill
       setSelectedBill(res.data);
+      // Clear customer selection for this order
+      const newCustomerMap = { ...selectedCustomerForOrder };
+      delete newCustomerMap[orderId];
+      setSelectedCustomerForOrder(newCustomerMap);
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.response?.data?.error || "Failed to generate bill";
       toast.error(errorMsg);
@@ -158,6 +178,7 @@ export default function Billing() {
                   <tr className="border-b border-gray-100">
                     <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                     <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Table</th>
+                    <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer (B2B)</th>
                     <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
                     <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                     <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -173,6 +194,29 @@ export default function Billing() {
                         <span className="text-sm text-gray-900">
                           {order.table?.tableNumber || "N/A"}
                         </span>
+                      </td>
+                      <td className="p-3">
+                        {orderBillsMap[order.id] ? (
+                          <span className="text-sm text-gray-500">Bill Generated</span>
+                        ) : (
+                          <select
+                            className="input-field text-sm w-48"
+                            value={selectedCustomerForOrder[order.id] || ""}
+                            onChange={(e) => {
+                              setSelectedCustomerForOrder({
+                                ...selectedCustomerForOrder,
+                                [order.id]: e.target.value || null,
+                              });
+                            }}
+                          >
+                            <option value="">Walk-in Customer</option>
+                            {customers.map((customer) => (
+                              <option key={customer.id} value={customer.id}>
+                                {customer.name} {customer.gstin ? `(${customer.gstin})` : ""}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </td>
                       <td className="p-3 font-medium text-gray-900">₹{order.totalAmount?.toFixed(2) || "0.00"}</td>
                       <td className="p-3 text-sm text-gray-500">
@@ -273,10 +317,49 @@ export default function Billing() {
                         <p className="text-sm text-gray-500 mb-1">Subtotal</p>
                         <p className="text-lg font-semibold text-gray-900">₹{selectedBill.totalAmount?.toFixed(2)}</p>
                       </div>
+                      {selectedBill.companyGstin && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Company GSTIN</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedBill.companyGstin}</p>
+                        </div>
+                      )}
+                      {selectedBill.customerGstin && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Customer GSTIN</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedBill.customerGstin}</p>
+                        </div>
+                      )}
+                      {selectedBill.isInterState ? (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">IGST</p>
+                          <p className="text-lg font-semibold text-gray-900">₹{selectedBill.igst?.toFixed(2) || "0.00"}</p>
+                        </div>
+                      ) : (
+                        <>
+                          {selectedBill.cgst != null && selectedBill.cgst > 0 && (
+                            <div>
+                              <p className="text-sm text-gray-500 mb-1">CGST</p>
+                              <p className="text-lg font-semibold text-gray-900">₹{selectedBill.cgst.toFixed(2)}</p>
+                            </div>
+                          )}
+                          {selectedBill.sgst != null && selectedBill.sgst > 0 && (
+                            <div>
+                              <p className="text-sm text-gray-500 mb-1">SGST</p>
+                              <p className="text-lg font-semibold text-gray-900">₹{selectedBill.sgst.toFixed(2)}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Tax (5%)</p>
+                        <p className="text-sm text-gray-500 mb-1">Total Tax</p>
                         <p className="text-lg font-semibold text-gray-900">₹{selectedBill.tax?.toFixed(2)}</p>
                       </div>
+                      {selectedBill.placeOfSupply && (
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Place of Supply</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedBill.placeOfSupply}</p>
+                        </div>
+                      )}
                       <div className="col-span-2">
                         <p className="text-sm text-gray-500 mb-1">Grand Total</p>
                         <p className="text-2xl font-bold text-gray-900">₹{selectedBill.grandTotal?.toFixed(2)}</p>
