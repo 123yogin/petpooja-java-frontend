@@ -138,14 +138,14 @@ export default function Suppliers() {
 
         {/* Search */}
         <div className="card">
-          <input
-            type="text"
+            <input
+              type="text"
             placeholder="Search suppliers by name, email, or contact..."
             className="input-field w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
         {/* Suppliers List */}
         <div className="card">
