@@ -11,6 +11,8 @@ import Analytics from "./pages/Analytics";
 import Tables from "./pages/Tables";
 import Billing from "./pages/Billing";
 import Inventory from "./pages/Inventory";
+import Suppliers from "./pages/Suppliers";
+import PurchaseOrders from "./pages/PurchaseOrders";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -71,7 +73,7 @@ function App() {
         <Route 
           path="/billing" 
           element={
-            <ProtectedRoute allowedRoles={["CASHIER", "ADMIN"]}>
+            <ProtectedRoute allowedRoles={["CASHIER", "ADMIN", "MANAGER"]}>
               <Billing />
             </ProtectedRoute>
           }
@@ -81,6 +83,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <Inventory />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/suppliers" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <Suppliers />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/purchase-orders" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <PurchaseOrders />
             </ProtectedRoute>
           }
         />

@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useSearchParams } from "react-router-dom";
 import API from "../api/axios";
 import { connectSocket, disconnectSocket } from "../api/socket";
 import toast from "react-hot-toast";
 import Layout from "../components/Layout";
+import { AuthContext } from "../context/AuthContext";
+import { can } from "../utils/rolePermissions";
 
 export default function Orders() {
+  const { user } = useContext(AuthContext);
+  const userRole = user?.role || "";
   const [searchParams] = useSearchParams();
   const [menu, setMenu] = useState([]);
   const [tables, setTables] = useState([]);
@@ -158,9 +162,20 @@ export default function Orders() {
       toast.success("Order Created!");
       setCart([]);
       setTableId("");
+      loadOrders();
       // WebSocket will handle the UI update automatically
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to create order");
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await API.put(`/orders/${orderId}/status?status=${newStatus}`);
+      toast.success(`Order status updated to ${newStatus}`);
+      loadOrders();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update order status");
     }
   };
 
@@ -174,6 +189,7 @@ export default function Orders() {
           <p className="text-sm text-gray-500">Create and manage orders</p>
         </div>
 
+        {can(userRole, "canCreateOrders") ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Menu Items */}
           <div className="lg:col-span-2">
@@ -278,6 +294,13 @@ export default function Orders() {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="card bg-blue-50 border-blue-200">
+            <p className="text-sm text-blue-800">
+              You can view orders but cannot create new orders. Contact an administrator if you need to create orders.
+            </p>
+          </div>
+        )}
 
         {/* Existing Orders */}
         <div className="card">
@@ -359,14 +382,25 @@ export default function Orders() {
                     <p className="text-xs text-gray-400 mt-2">
                       {o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}
                     </p>
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-2 mt-3 flex-wrap">
                       <button
                         onClick={() => setSelectedOrder(o)}
-                        className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                        className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors min-w-[100px]"
                       >
                         View Details
                       </button>
-                      {o.status === "COMPLETED" && (
+                      {can(userRole, "canUpdateOrderStatus") && o.status !== "COMPLETED" && o.status !== "CANCELLED" && (
+                        <button
+                          onClick={() => {
+                            const nextStatus = o.status === "CREATED" ? "IN_PROGRESS" : "COMPLETED";
+                            updateOrderStatus(o.id, nextStatus);
+                          }}
+                          className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-medium transition-colors"
+                        >
+                          {o.status === "CREATED" ? "Start" : "Complete"}
+                        </button>
+                      )}
+                      {o.status === "COMPLETED" && can(userRole, "canGenerateBills") && (
                         <button
                           onClick={async () => {
                             try {
@@ -470,7 +504,19 @@ export default function Orders() {
                   </div>
 
                   <div className="flex gap-3 pt-4 border-t">
-                    {selectedOrder.status === "COMPLETED" && (
+                    {can(userRole, "canUpdateOrderStatus") && selectedOrder.status !== "COMPLETED" && selectedOrder.status !== "CANCELLED" && (
+                      <button
+                        onClick={() => {
+                          const nextStatus = selectedOrder.status === "CREATED" ? "IN_PROGRESS" : "COMPLETED";
+                          updateOrderStatus(selectedOrder.id, nextStatus);
+                          setSelectedOrder(null);
+                        }}
+                        className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium"
+                      >
+                        {selectedOrder.status === "CREATED" ? "Start Order" : "Complete Order"}
+                      </button>
+                    )}
+                    {selectedOrder.status === "COMPLETED" && can(userRole, "canGenerateBills") && (
                       <button
                         onClick={async () => {
                           try {

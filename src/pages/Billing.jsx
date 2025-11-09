@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import API from "../api/axios";
 import toast from "react-hot-toast";
 import Layout from "../components/Layout";
+import { AuthContext } from "../context/AuthContext";
+import { can } from "../utils/rolePermissions";
 
 export default function Billing() {
+  const { user } = useContext(AuthContext);
+  const userRole = user?.role || "";
   const [orders, setOrders] = useState([]);
   const [bills, setBills] = useState([]);
   const [orderBillsMap, setOrderBillsMap] = useState({}); // Map orderId -> billId
@@ -191,12 +195,14 @@ export default function Billing() {
                             </button>
                           </div>
                         ) : (
+                          can(userRole, "canGenerateBills") && (
                           <button
                             onClick={() => generateBill(order.id)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
                           >
                             Generate Bill
                           </button>
+                          )
                         )}
                       </td>
                     </tr>

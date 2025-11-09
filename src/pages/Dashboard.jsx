@@ -1,10 +1,12 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useContext } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import API from "../api/axios";
 import { connectSocket, disconnectSocket } from "../api/socket";
 import toast from "react-hot-toast";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AuthContext } from "../context/AuthContext";
+import { can } from "../utils/rolePermissions";
 
 // Skeleton Loader Component
 const SkeletonCard = () => (
@@ -61,6 +63,8 @@ const StatCard = ({ title, value, change, isLoading, icon }) => {
 };
 
 export default function Dashboard() {
+  const { user } = useContext(AuthContext);
+  const userRole = user?.role || "";
   const [selectedPeriod, setSelectedPeriod] = useState("today");
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -199,13 +203,21 @@ export default function Dashboard() {
     date: new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
   }));
 
-  const quickActions = [
-    { path: "/menu", label: "Menu Management", description: "Manage menu items", icon: "🍽️" },
-    { path: "/tables", label: "Tables", description: "View table status", icon: "🪑" },
-    { path: "/orders", label: "Orders", description: "Create new orders", icon: "📋" },
-    { path: "/kitchen", label: "Kitchen", description: "Kitchen display", icon: "👨‍🍳" },
-    { path: "/analytics", label: "Analytics", description: "View reports", icon: "📊" },
+  const allQuickActions = [
+    { path: "/menu", label: "Menu Management", description: "Manage menu items", icon: "🍽️", permission: "canManageMenu" },
+    { path: "/tables", label: "Tables", description: "View table status", icon: "🪑", permission: "canManageTables" },
+    { path: "/orders", label: "Orders", description: "Create new orders", icon: "📋", permission: "canCreateOrders" },
+    { path: "/kitchen", label: "Kitchen", description: "Kitchen display", icon: "👨‍🍳", permission: "canViewKitchen" },
+    { path: "/analytics", label: "Analytics", description: "View reports", icon: "📊", permission: "canViewAnalytics" },
+    { path: "/billing", label: "Billing", description: "Generate bills", icon: "🧾", permission: "canViewBills" },
+    { path: "/inventory", label: "Inventory", description: "Manage inventory", icon: "📦", permission: "canManageInventory" },
   ];
+
+  // Filter quick actions based on role permissions
+  const quickActions = allQuickActions.filter(action => {
+    if (!action.permission) return true;
+    return can(userRole, action.permission);
+  });
 
   return (
     <Layout>
@@ -376,8 +388,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Low Stock Alerts */}
-        {lowStockItems.length > 0 && (
+        {/* Low Stock Alerts - Only show for ADMIN */}
+        {can(userRole, "canManageInventory") && lowStockItems.length > 0 && (
           <div className="card border-l-4 border-red-500">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
@@ -386,7 +398,7 @@ export default function Dashboard() {
                 </svg>
                 <h2 className="text-lg font-medium text-gray-900">Low Stock Alerts</h2>
               </div>
-              <Link to="/menu" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <Link to="/inventory" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                 Manage Inventory
               </Link>
             </div>
