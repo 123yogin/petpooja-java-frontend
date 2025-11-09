@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import toast from "react-hot-toast";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 
 export default function Tables() {
   const [tables, setTables] = useState([]);
@@ -57,68 +57,77 @@ export default function Tables() {
   };
 
   return (
-    <div>
-      <Navbar />
-      <div className="p-6">
-        <h2 className="text-xl font-bold mb-4">Table Management</h2>
-        <form onSubmit={createTable} className="flex gap-2 mb-4">
-          <input
-            placeholder="Table Number (e.g., T1)"
-            className="border p-2 rounded"
-            value={tableNumber}
-            onChange={(e) => setTableNumber(e.target.value)}
-            required
-          />
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Add Table
-          </button>
-        </form>
-        <table className="w-full border rounded">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2 text-left">Table Number</th>
-              <th className="border p-2 text-left">Status</th>
-              <th className="border p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tables.map((t) => (
-              <tr key={t.id} className="border-b">
-                <td className="border p-2">{t.tableNumber}</td>
-                <td className="border p-2">
-                  <span
-                    className={`px-2 py-1 rounded ${
-                      t.occupied
-                        ? "bg-red-100 text-red-800"
-                        : "bg-green-100 text-green-800"
-                    }`}
-                  >
-                    {t.occupied ? "Occupied" : "Available"}
-                  </span>
-                </td>
-                <td className="border p-2">
-                  <button
-                    onClick={() => toggleOccupied(t)}
-                    className="bg-yellow-500 text-white px-2 py-1 mr-2 rounded hover:bg-yellow-600"
-                  >
-                    {t.occupied ? "Vacate" : "Occupy"}
-                  </button>
-                  <button
-                    onClick={() => deleteTable(t.id)}
-                    className="text-red-600 hover:text-red-800 font-bold"
-                  >
-                    ✕
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {tables.length === 0 && (
-          <p className="text-gray-500 mt-4">No tables yet. Add some above!</p>
-        )}
+    <Layout>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Table Management</h1>
+          <p className="text-sm text-gray-500">Manage restaurant tables and their status</p>
+        </div>
+
+        <div className="card">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Table</h2>
+          <form onSubmit={createTable} className="flex gap-3">
+            <input
+              placeholder="Table Number (e.g., T1)"
+              className="input-field flex-1"
+              value={tableNumber}
+              onChange={(e) => setTableNumber(e.target.value)}
+              required
+            />
+            <button type="submit" className="btn-primary px-6">
+              Add Table
+            </button>
+          </form>
+        </div>
+
+        <div className="card">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Tables ({tables.length})</h2>
+          {tables.length === 0 ? (
+            <p className="text-gray-500 text-center py-12 text-sm">No tables yet. Add some above!</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {tables.map((t) => (
+                <div
+                  key={t.id}
+                  className={`p-4 rounded-lg border transition-all ${
+                    t.occupied
+                      ? "bg-white border-gray-300"
+                      : "bg-white border-gray-100"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold text-gray-900">{t.tableNumber}</h3>
+                    <span
+                      className={`badge ${
+                        t.occupied
+                          ? "bg-gray-100 text-gray-700"
+                          : "bg-gray-50 text-gray-500"
+                      }`}
+                    >
+                      {t.occupied ? "Occupied" : "Available"}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => toggleOccupied(t)}
+                      className="flex-1 btn-primary text-sm"
+                    >
+                      {t.occupied ? "Vacate" : "Occupy"}
+                    </button>
+                    <button
+                      onClick={() => deleteTable(t.id)}
+                      className="px-3 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 hover:text-gray-900 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 

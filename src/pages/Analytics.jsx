@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
-import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import toast from "react-hot-toast";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 
 export default function Analytics() {
   const [data, setData] = useState(null);
@@ -26,12 +26,11 @@ export default function Analytics() {
 
   if (!data) {
     return (
-      <div>
-        <Navbar />
-        <div className="p-6">
-          <p>Loading...</p>
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500">Loading...</p>
         </div>
-      </div>
+      </Layout>
     );
   }
 
@@ -54,69 +53,78 @@ export default function Analytics() {
   }));
 
   return (
-    <div>
-      <Navbar />
-      <div className="p-6">
-        <h2 className="text-xl font-bold mb-4">Analytics Dashboard</h2>
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 rounded shadow">
-            <p className="text-gray-600 text-sm">Total Sales</p>
-            <p className="text-2xl font-bold text-green-600">
+    <Layout>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Analytics Dashboard</h1>
+          <p className="text-sm text-gray-500">View sales reports and insights</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="card">
+            <p className="text-xs text-gray-500 font-medium mb-1">Total Sales</p>
+            <p className="text-2xl font-semibold text-gray-900">
               ₹{data.totalSales?.toFixed(2) || "0.00"}
             </p>
           </div>
-          <div className="bg-white p-4 rounded shadow">
-            <p className="text-gray-600 text-sm">Total Orders</p>
-            <p className="text-2xl font-bold text-blue-600">
+          <div className="card">
+            <p className="text-xs text-gray-500 font-medium mb-1">Total Orders</p>
+            <p className="text-2xl font-semibold text-gray-900">
               {data.totalOrders || 0}
             </p>
           </div>
-          <div className="bg-white p-4 rounded shadow">
-            <p className="text-gray-600 text-sm">Avg Order Value</p>
-            <p className="text-2xl font-bold text-purple-600">
+          <div className="card">
+            <p className="text-xs text-gray-500 font-medium mb-1">Avg Order Value</p>
+            <p className="text-2xl font-semibold text-gray-900">
               ₹{data.avgOrderValue?.toFixed(2) || "0.00"}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="font-semibold mb-4">Sales Overview</h3>
-            <PieChart width={300} height={250}>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="card">
+            <h3 className="text-base font-medium mb-4 text-gray-900">Sales Overview</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  dataKey="value"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
 
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="font-semibold mb-4">Orders by Status</h3>
+          <div className="card">
+            <h3 className="text-base font-medium mb-4 text-gray-900">Orders by Status</h3>
             {statusData.length > 0 ? (
-              <BarChart width={300} height={250} data={statusData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="status" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={statusData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="status" stroke="#666" />
+                  <YAxis stroke="#666" />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#1f2937" />
+                </BarChart>
+              </ResponsiveContainer>
             ) : (
-              <p className="text-gray-500">No order data available</p>
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-500 text-sm">No order data available</p>
+              </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../api/axios";
 import { connectSocket, disconnectSocket } from "../api/socket";
 import toast from "react-hot-toast";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 
 export default function Kitchen() {
   const [orders, setOrders] = useState([]);
@@ -62,79 +62,125 @@ export default function Kitchen() {
   const getStatusColor = (status) => {
     switch (status) {
       case "CREATED":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-gray-100 text-gray-700";
       case "IN_PROGRESS":
-        return "bg-blue-100 text-blue-800";
+        return "bg-gray-100 text-gray-700";
       case "COMPLETED":
-        return "bg-green-100 text-green-800";
+        return "bg-gray-100 text-gray-700";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-700";
     }
   };
 
+  const pendingOrders = orders.filter((o) => o.status !== "COMPLETED");
+  const completedOrders = orders.filter((o) => o.status === "COMPLETED");
+
   return (
-    <div>
-      <Navbar />
-      <div className="p-6">
-        <h2 className="text-xl font-bold mb-4">Kitchen Orders</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {orders.map((o) => (
-            <div key={o.id} className="border p-4 mb-2 bg-white rounded shadow">
-              <p className="text-sm text-gray-500 mb-1">Order ID</p>
-              <p className="font-mono text-xs mb-3">{o.id}</p>
-              <p className="mb-2">
-                <b>Status:</b>{" "}
-                <span className={`px-2 py-1 rounded ${getStatusColor(o.status)}`}>
-                  {o.status}
-                </span>
-              </p>
-              <p className="mb-2">
-                <b>Total:</b> ₹{o.totalAmount?.toFixed(2) || "0.00"}
-              </p>
-              {o.items && o.items.length > 0 && (
-                <div className="mb-3">
-                  <p className="text-sm font-semibold mb-1">Items:</p>
-                  <ul className="text-sm">
-                    {o.items.map((item, idx) => (
-                      <li key={idx}>
-                        {item.menuItem?.name || "Unknown"} × {item.quantity}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className="flex gap-2 mt-3">
-                {o.status === "CREATED" && (
-                  <button
-                    onClick={() => update(o.id, "IN_PROGRESS")}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-                  >
-                    Start
-                  </button>
-                )}
-                {o.status === "IN_PROGRESS" && (
-                  <button
-                    onClick={() => update(o.id, "COMPLETED")}
-                    className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                  >
-                    Done
-                  </button>
-                )}
-                {o.status === "COMPLETED" && (
-                  <span className="text-green-600 font-semibold">✓ Completed</span>
-                )}
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                {o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}
-              </p>
-            </div>
-          ))}
+    <Layout>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Kitchen Display</h1>
+          <p className="text-sm text-gray-500">Manage and track order preparation</p>
         </div>
+
+        {pendingOrders.length > 0 && (
+          <div>
+            <h2 className="text-lg font-medium mb-4 text-gray-900">
+              Active Orders ({pendingOrders.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {pendingOrders.map((o) => (
+                <div key={o.id} className="card border-l-2 border-gray-900">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Order ID</p>
+                      <p className="font-mono text-xs font-medium text-gray-700">{o.id}</p>
+                    </div>
+                    <span className={`badge ${getStatusColor(o.status)}`}>
+                      {o.status}
+                    </span>
+                  </div>
+
+                  {o.items && o.items.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs font-medium text-gray-700 mb-2">Items:</p>
+                      <ul className="space-y-1">
+                        {o.items.map((item, idx) => (
+                          <li key={idx} className="text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
+                            {item.menuItem?.name || "Unknown"} × {item.quantity}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center mb-3 pt-3 border-t border-gray-100">
+                    <span className="text-xs text-gray-500">Total:</span>
+                    <span className="font-semibold text-gray-900">₹{o.totalAmount?.toFixed(2) || "0.00"}</span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {o.status === "CREATED" && (
+                      <button
+                        onClick={() => update(o.id, "IN_PROGRESS")}
+                        className="btn-primary flex-1"
+                      >
+                        Start Cooking
+                      </button>
+                    )}
+                    {o.status === "IN_PROGRESS" && (
+                      <button
+                        onClick={() => update(o.id, "COMPLETED")}
+                        className="btn-primary flex-1"
+                      >
+                        Mark Done
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-gray-400 mt-3">
+                    {o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {completedOrders.length > 0 && (
+          <div>
+            <h2 className="text-lg font-medium mb-4 text-gray-900">
+              Completed Orders ({completedOrders.length})
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {completedOrders.map((o) => (
+                <div key={o.id} className="card border-l-2 border-gray-300 bg-gray-50">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Order ID</p>
+                      <p className="font-mono text-xs font-medium text-gray-700">{o.id}</p>
+                    </div>
+                    <span className="badge bg-gray-100 text-gray-700">Completed</span>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-2">
+                    Total: <span className="font-semibold text-gray-900">₹{o.totalAmount?.toFixed(2) || "0.00"}</span>
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {orders.length === 0 && (
-          <p className="text-gray-500 mt-4">No orders in kitchen</p>
+          <div className="card text-center py-12">
+            <p className="text-gray-500 text-sm">No orders in kitchen</p>
+          </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
 

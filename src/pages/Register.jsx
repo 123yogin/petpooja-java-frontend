@@ -122,133 +122,160 @@ export default function Register() {
   // Show confirmation form if confirmation is required
   if (confirmationRequired) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-100">
-        <form onSubmit={handleConfirm} className="bg-white p-8 rounded shadow-md w-96">
-          <h2 className="text-2xl mb-6 font-bold text-center text-gray-800">Confirm Your Account</h2>
-          
-          {message && (
-            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-              {message}
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="w-full max-w-md">
+          <form onSubmit={handleConfirm} className="bg-white p-10 rounded-xl border border-gray-100">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Confirm Your Account</h2>
+              <p className="text-sm text-gray-500">Enter the confirmation code sent to your email</p>
             </div>
-          )}
-          
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-              {error}
+            
+            {message && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-100 text-green-700 rounded-lg text-sm">
+                {message}
+              </div>
+            )}
+            
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="mb-6 p-3 bg-gray-50 border border-gray-100 text-gray-700 rounded-lg text-sm">
+              Confirmation code sent to <strong>{userEmail || form.email}</strong>
             </div>
-          )}
 
-          <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded text-sm">
-            We've sent a confirmation code to <strong>{userEmail || form.email}</strong>. Please enter it below.
-          </div>
-
-          <input 
-            type="text" 
-            placeholder="Confirmation Code" 
-            className="w-full p-2 mb-3 border rounded"
-            value={confirmationCode}
-            onChange={(e) => setConfirmationCode(e.target.value)} 
-            required
-          />
-          
-          <button 
-            type="submit"
-            className="bg-blue-600 text-white w-full p-2 rounded hover:bg-blue-700 mb-3"
-          >
-            Confirm Account
-          </button>
-
-          <button 
-            type="button"
-            onClick={handleResendCode}
-            className="bg-gray-200 text-gray-700 w-full p-2 rounded hover:bg-gray-300 mb-3"
-          >
-            Resend Code
-          </button>
-          
-          <div className="text-center text-sm">
-            <button
-              type="button"
-              onClick={() => setConfirmationRequired(false)}
-              className="text-blue-600 hover:underline"
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Confirmation Code</label>
+              <input 
+                type="text" 
+                placeholder="Enter confirmation code" 
+                className="input-field"
+                value={confirmationCode}
+                onChange={(e) => setConfirmationCode(e.target.value)} 
+                required
+              />
+            </div>
+            
+            <button 
+              type="submit"
+              className="btn-primary w-full py-3 mb-3"
             >
-              Back to Registration
+              Confirm Account
             </button>
-          </div>
-        </form>
+
+            <button 
+              type="button"
+              onClick={handleResendCode}
+              className="btn-secondary w-full py-3 mb-4"
+            >
+              Resend Code
+            </button>
+            
+            <div className="text-center text-sm">
+              <button
+                type="button"
+                onClick={() => setConfirmationRequired(false)}
+                className="text-gray-600 hover:text-gray-900 font-medium"
+              >
+                ← Back to Registration
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-96">
-        <h2 className="text-2xl mb-6 font-bold text-center text-gray-800">Register</h2>
-        
-        {message && (
-          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-            {message}
+    <div className="flex h-screen items-center justify-center bg-white">
+      <div className="w-full max-w-md">
+        <div className="bg-white p-10 rounded-xl border border-gray-100">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Create Account</h2>
+            <p className="text-sm text-gray-500">Sign up for restaurant management system</p>
           </div>
-        )}
-        
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
-            {error}
-          </div>
-        )}
+          
+          {message && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-100 text-green-700 rounded-lg text-sm">
+              {message}
+            </div>
+          )}
+          
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
 
-        <input 
-          type="text" 
-          placeholder="Username" 
-          className="w-full p-2 mb-3 border rounded"
-          value={form.username}
-          onChange={(e) => setForm({ ...form, username: e.target.value })} 
-          required
-        />
-        
-        <input 
-          type="email" 
-          placeholder="Email" 
-          className="w-full p-2 mb-3 border rounded"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })} 
-          required
-        />
-        
-        <input 
-          type="password" 
-          placeholder="Password" 
-          className="w-full p-2 mb-3 border rounded"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })} 
-          required
-        />
-        
-        <select 
-          className="w-full p-2 mb-3 border rounded"
-          value={form.role}
-          onChange={(e) => setForm({ ...form, role: e.target.value })} 
-          required
-        >
-          <option value="ADMIN">Admin</option>
-          <option value="MANAGER">Manager</option>
-          <option value="CASHIER">Cashier</option>
-        </select>
-        
-        <button 
-          type="submit"
-          className="bg-blue-600 text-white w-full p-2 rounded hover:bg-blue-700 mb-3"
-        >
-          Register
-        </button>
-        
-        <div className="text-center text-sm">
-          <span className="text-gray-600">Already have an account? </span>
-          <Link to="/" className="text-blue-600 hover:underline">
-            Login
-          </Link>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+              <input 
+                type="text" 
+                placeholder="Enter your username" 
+                className="input-field"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })} 
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input 
+                type="email" 
+                placeholder="Enter your email" 
+                className="input-field"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })} 
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <input 
+                type="password" 
+                placeholder="Enter your password" 
+                className="input-field"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })} 
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+              <select 
+                className="input-field"
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value })} 
+                required
+              >
+                <option value="ADMIN">Admin</option>
+                <option value="MANAGER">Manager</option>
+                <option value="CASHIER">Cashier</option>
+              </select>
+            </div>
+            
+            <button 
+              type="submit"
+              className="btn-primary w-full py-3"
+            >
+              Register
+            </button>
+          </form>
+          
+          <div className="mt-6 text-center text-sm">
+            <span className="text-gray-500">Already have an account? </span>
+            <Link to="/" className="text-gray-900 hover:underline font-medium">
+              Sign In
+            </Link>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api/axios";
 import toast from "react-hot-toast";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 
 export default function Menu() {
   const [items, setItems] = useState([]);
@@ -44,72 +44,91 @@ export default function Menu() {
   };
 
   return (
-    <div>
-      <Navbar />
-      <div className="p-6">
-        <h2 className="text-xl font-bold mb-4">Menu Management</h2>
-        <form onSubmit={addItem} className="flex gap-2 mb-4">
-          <input
-            placeholder="Name"
-            className="border p-2 rounded"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            required
-          />
-          <input
-            placeholder="Category"
-            className="border p-2 rounded"
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-            required
-          />
-          <input
-            placeholder="Price"
-            type="number"
-            step="0.01"
-            className="border p-2 w-24 rounded"
-            value={form.price}
-            onChange={(e) => setForm({ ...form, price: e.target.value })}
-            required
-          />
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Add
-          </button>
-        </form>
-        <table className="w-full border rounded">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2 text-left">Name</th>
-              <th className="border p-2 text-left">Category</th>
-              <th className="border p-2 text-left">Price</th>
-              <th className="border p-2 text-left">Available</th>
-              <th className="border p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((i) => (
-              <tr key={i.id} className="border-b">
-                <td className="border p-2">{i.name}</td>
-                <td className="border p-2">{i.category}</td>
-                <td className="border p-2">₹{i.price}</td>
-                <td className="border p-2">{i.available ? "Yes" : "No"}</td>
-                <td className="border p-2">
-                  <button
-                    onClick={() => deleteItem(i.id)}
-                    className="text-red-600 hover:text-red-800 font-bold"
-                  >
-                    ✕
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {items.length === 0 && (
-          <p className="text-gray-500 mt-4">No menu items yet. Add some above!</p>
-        )}
+    <Layout>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Menu Management</h1>
+          <p className="text-sm text-gray-500">Add, edit, and manage your menu items</p>
+        </div>
+
+        <div className="card">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Menu Item</h2>
+          <form onSubmit={addItem} className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <input
+              placeholder="Item Name"
+              className="input-field"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+            <input
+              placeholder="Category"
+              className="input-field"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              required
+            />
+            <input
+              placeholder="Price"
+              type="number"
+              step="0.01"
+              className="input-field"
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              required
+            />
+            <button type="submit" className="btn-primary">
+              Add Item
+            </button>
+          </form>
+        </div>
+
+        <div className="card">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Menu Items ({items.length})</h2>
+          {items.length === 0 ? (
+            <p className="text-gray-500 text-center py-12 text-sm">No menu items yet. Add some above!</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Available</th>
+                    <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((i) => (
+                    <tr key={i.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                      <td className="p-3 font-medium text-gray-900">{i.name}</td>
+                      <td className="p-3">
+                        <span className="badge bg-gray-100 text-gray-700">{i.category}</span>
+                      </td>
+                      <td className="p-3 font-medium text-gray-900">₹{i.price}</td>
+                      <td className="p-3">
+                        <span className={`badge ${i.available ? "bg-gray-100 text-gray-700" : "bg-gray-50 text-gray-400"}`}>
+                          {i.available ? "Yes" : "No"}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        <button
+                          onClick={() => deleteItem(i.id)}
+                          className="text-gray-400 hover:text-gray-900 text-sm font-medium transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 
