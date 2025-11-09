@@ -211,6 +211,7 @@ export default function Dashboard() {
     { path: "/analytics", label: "Analytics", description: "View reports", icon: "📊", permission: "canViewAnalytics" },
     { path: "/billing", label: "Billing", description: "Generate bills", icon: "🧾", permission: "canViewBills" },
     { path: "/inventory", label: "Inventory", description: "Manage inventory", icon: "📦", permission: "canManageInventory" },
+    { path: "/tasks", label: "Tasks", description: "Manage tasks", icon: "✅", permission: null },
   ];
 
   // Filter quick actions based on role permissions

@@ -13,6 +13,7 @@ import Billing from "./pages/Billing";
 import Inventory from "./pages/Inventory";
 import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
+import Tasks from "./pages/Tasks";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -99,6 +100,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <PurchaseOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/tasks" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CASHIER", "KITCHEN"]}>
+              <Tasks />
             </ProtectedRoute>
           }
         />

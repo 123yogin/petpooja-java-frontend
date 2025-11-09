@@ -16,6 +16,7 @@ export default function Sidebar() {
     { path: "/inventory", label: "Inventory", roles: ["ADMIN"] },
     { path: "/suppliers", label: "Suppliers", roles: ["ADMIN"] },
     { path: "/purchase-orders", label: "Purchase Orders", roles: ["ADMIN"] },
+    { path: "/tasks", label: "Tasks", roles: ["ADMIN", "MANAGER", "CASHIER", "KITCHEN"] },
     { path: "/analytics", label: "Analytics", roles: ["ADMIN", "MANAGER"] },
   ];
 
