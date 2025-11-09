@@ -15,6 +15,12 @@ import Suppliers from "./pages/Suppliers";
 import PurchaseOrders from "./pages/PurchaseOrders";
 import Tasks from "./pages/Tasks";
 import Customers from "./pages/Customers";
+import Employees from "./pages/Employees";
+import Attendance from "./pages/Attendance";
+import Leaves from "./pages/Leaves";
+import Payroll from "./pages/Payroll";
+import AccountsReceivable from "./pages/AccountsReceivable";
+import Outlets from "./pages/Outlets";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -117,6 +123,54 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN", "CASHIER", "MANAGER"]}>
               <Customers />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/employees" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+              <Employees />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/attendance" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CASHIER", "KITCHEN"]}>
+              <Attendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/leaves" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "MANAGER", "CASHIER", "KITCHEN"]}>
+              <Leaves />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/payroll" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+              <Payroll />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/accounts-receivable" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "CASHIER", "MANAGER"]}>
+              <AccountsReceivable />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/outlets" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN", "MANAGER"]}>
+              <Outlets />
             </ProtectedRoute>
           }
         />

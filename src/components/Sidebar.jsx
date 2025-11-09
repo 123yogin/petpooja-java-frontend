@@ -18,6 +18,12 @@ export default function Sidebar() {
     { path: "/purchase-orders", label: "Purchase Orders", roles: ["ADMIN"] },
     { path: "/customers", label: "Customers", roles: ["ADMIN", "CASHIER", "MANAGER"] },
     { path: "/tasks", label: "Tasks", roles: ["ADMIN", "MANAGER", "CASHIER", "KITCHEN"] },
+    { path: "/employees", label: "Employees", roles: ["ADMIN", "MANAGER"] },
+    { path: "/attendance", label: "Attendance", roles: ["ADMIN", "MANAGER", "CASHIER", "KITCHEN"] },
+    { path: "/leaves", label: "Leaves", roles: ["ADMIN", "MANAGER", "CASHIER", "KITCHEN"] },
+    { path: "/payroll", label: "Payroll", roles: ["ADMIN", "MANAGER"] },
+    { path: "/accounts-receivable", label: "Accounts Receivable", roles: ["ADMIN", "CASHIER", "MANAGER"] },
+    { path: "/outlets", label: "Outlets", roles: ["ADMIN", "MANAGER"] },
     { path: "/analytics", label: "Analytics", roles: ["ADMIN", "MANAGER"] },
   ];
 

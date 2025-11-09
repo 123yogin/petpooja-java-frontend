@@ -5,6 +5,8 @@ import Layout from "../components/Layout";
 
 export default function Tables() {
   const [tables, setTables] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [capacity, setCapacity] = useState("");
   const [location, setLocation] = useState("");
@@ -22,8 +24,21 @@ export default function Tables() {
     }
   };
 
+  const loadOutlets = async () => {
+    try {
+      const res = await API.get("/outlets/active");
+      setOutlets(res.data);
+      if (res.data.length > 0 && !selectedOutlet) {
+        setSelectedOutlet(res.data[0].id); // Auto-select first outlet
+      }
+    } catch (err) {
+      console.log("Outlets not available");
+    }
+  };
+
   useEffect(() => {
     loadTables();
+    loadOutlets();
   }, []);
 
   const createTable = async (e) => {
@@ -34,6 +49,7 @@ export default function Tables() {
         occupied: false,
         capacity: capacity ? parseInt(capacity) : null,
         location: location || null,
+        outletId: selectedOutlet || null,
       });
       setTableNumber("");
       setCapacity("");
@@ -63,6 +79,7 @@ export default function Tables() {
         occupied: !table.occupied,
         capacity: table.capacity,
         location: table.location,
+        outletId: table.outlet?.id || null,
       });
       toast.success(`Table ${!table.occupied ? "occupied" : "vacated"}!`);
       loadTables();
@@ -99,31 +116,49 @@ export default function Tables() {
 
         <div className="card">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Table</h2>
-          <form onSubmit={createTable} className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <input
-              placeholder="Table Number (e.g., T1)"
-              className="input-field"
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Capacity (optional)"
-              className="input-field"
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-              min="1"
-            />
-            <input
-              placeholder="Location (e.g., Floor 1)"
-              className="input-field"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
-            <button type="submit" className="btn-primary">
-              Add Table
-            </button>
+          <form onSubmit={createTable} className="space-y-3">
+            {outlets.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select Outlet</label>
+                <select
+                  className="input-field"
+                  value={selectedOutlet}
+                  onChange={(e) => setSelectedOutlet(e.target.value)}
+                >
+                  {outlets.map((outlet) => (
+                    <option key={outlet.id} value={outlet.id}>
+                      {outlet.name} ({outlet.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <input
+                placeholder="Table Number (e.g., T1)"
+                className="input-field"
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+                required
+              />
+              <input
+                type="number"
+                placeholder="Capacity (optional)"
+                className="input-field"
+                value={capacity}
+                onChange={(e) => setCapacity(e.target.value)}
+                min="1"
+              />
+              <input
+                placeholder="Location (e.g., Floor 1)"
+                className="input-field"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+              <button type="submit" className="btn-primary">
+                Add Table
+              </button>
+            </div>
           </form>
         </div>
 

@@ -12,6 +12,12 @@ export default function Analytics() {
   const [lowStockItems, setLowStockItems] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState("all");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [profitLoss, setProfitLoss] = useState(null);
+  const [cashFlow, setCashFlow] = useState(null);
+  const [reportDateRange, setReportDateRange] = useState({
+    start: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split("T")[0],
+    end: new Date().toISOString().split("T")[0],
+  });
 
   useEffect(() => {
     const loadData = async () => {
@@ -19,17 +25,21 @@ export default function Analytics() {
         const url = selectedPeriod !== "custom" 
           ? `/analytics/sales-summary${selectedPeriod !== "all" ? `?period=${selectedPeriod}` : ""}`
           : `/analytics/sales-summary`;
-        const [summaryRes, ordersRes, trendsRes, recentOrdersRes, lowStockRes] = await Promise.all([
+        const [summaryRes, ordersRes, trendsRes, recentOrdersRes, lowStockRes, plRes, cfRes] = await Promise.all([
           API.get(url),
           API.get("/orders"),
           API.get("/analytics/sales-trends").catch(() => ({ data: null })),
           API.get("/analytics/recent-orders?limit=10").catch(() => ({ data: [] })),
           API.get("/analytics/low-stock").catch(() => ({ data: [] })),
+          API.get(`/analytics/profit-loss?startDate=${reportDateRange.start}&endDate=${reportDateRange.end}`).catch(() => ({ data: null })),
+          API.get(`/analytics/cash-flow?startDate=${reportDateRange.start}&endDate=${reportDateRange.end}`).catch(() => ({ data: null })),
         ]);
         setData(summaryRes.data);
         setTrends(trendsRes.data);
         setRecentOrders(recentOrdersRes.data || []);
         setLowStockItems(lowStockRes.data || []);
+        setProfitLoss(plRes.data);
+        setCashFlow(cfRes.data);
         
         // Filter orders by date range if custom
         let filteredOrders = ordersRes.data;
@@ -72,7 +82,7 @@ export default function Analytics() {
       }
     };
     loadData();
-  }, [selectedPeriod, dateRange.start, dateRange.end]);
+  }, [selectedPeriod, dateRange.start, dateRange.end, reportDateRange.start, reportDateRange.end]);
 
   if (!data) {
     return (
@@ -305,6 +315,132 @@ export default function Analytics() {
             </div>
           </div>
         )}
+
+        {/* Financial Reports */}
+        <div className="card">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Financial Reports</h2>
+          <div className="mb-4 flex items-center gap-3">
+            <input
+              type="date"
+              value={reportDateRange.start}
+              onChange={(e) => setReportDateRange({ ...reportDateRange, start: e.target.value })}
+              className="input-field"
+            />
+            <span className="text-gray-500">to</span>
+            <input
+              type="date"
+              value={reportDateRange.end}
+              onChange={(e) => setReportDateRange({ ...reportDateRange, end: e.target.value })}
+              className="input-field"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Profit & Loss */}
+            {profitLoss && (
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-medium text-gray-900">Profit & Loss</h3>
+                  <button
+                    onClick={() => {
+                      const csv = `Profit & Loss Report\nPeriod: ${profitLoss.startDate} to ${profitLoss.endDate}\n\nRevenue,${profitLoss.revenue}\nExpenses,${profitLoss.expenses}\nPurchase Expenses,${profitLoss.purchaseExpenses}\nPayroll Expenses,${profitLoss.payrollExpenses}\nNet Profit,${profitLoss.netProfit}\nProfit Margin,${profitLoss.profitMargin}%\n`;
+                      const blob = new Blob([csv], { type: "text/csv" });
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `profit-loss-${profitLoss.startDate}-${profitLoss.endDate}.csv`;
+                      a.click();
+                    }}
+                    className="btn-outline btn-sm"
+                  >
+                    Export CSV
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Revenue:</span>
+                    <span className="text-sm font-semibold text-green-600">₹{profitLoss.revenue?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Total Expenses:</span>
+                    <span className="text-sm font-semibold text-red-600">₹{profitLoss.expenses?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="flex justify-between pl-4">
+                    <span className="text-xs text-gray-500">Purchase Expenses:</span>
+                    <span className="text-xs text-gray-700">₹{profitLoss.purchaseExpenses?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="flex justify-between pl-4">
+                    <span className="text-xs text-gray-500">Payroll Expenses:</span>
+                    <span className="text-xs text-gray-700">₹{profitLoss.payrollExpenses?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="border-t border-gray-200 pt-2 mt-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium text-gray-900">Net Profit:</span>
+                      <span className={`text-sm font-semibold ${profitLoss.netProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        ₹{profitLoss.netProfit?.toFixed(2) || "0.00"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-xs text-gray-500">Profit Margin:</span>
+                      <span className={`text-xs font-medium ${profitLoss.profitMargin >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {profitLoss.profitMargin?.toFixed(2) || "0.00"}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Cash Flow */}
+            {cashFlow && (
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-medium text-gray-900">Cash Flow</h3>
+                  <button
+                    onClick={() => {
+                      const csv = `Cash Flow Report\nPeriod: ${cashFlow.startDate} to ${cashFlow.endDate}\n\nCash Inflows,${cashFlow.cashInflows}\nCash Outflows,${cashFlow.cashOutflows}\nPurchase Outflows,${cashFlow.purchaseOutflows}\nPayroll Outflows,${cashFlow.payrollOutflows}\nNet Cash Flow,${cashFlow.netCashFlow}\n`;
+                      const blob = new Blob([csv], { type: "text/csv" });
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `cash-flow-${cashFlow.startDate}-${cashFlow.endDate}.csv`;
+                      a.click();
+                    }}
+                    className="btn-outline btn-sm"
+                  >
+                    Export CSV
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Cash Inflows:</span>
+                    <span className="text-sm font-semibold text-green-600">₹{cashFlow.cashInflows?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Cash Outflows:</span>
+                    <span className="text-sm font-semibold text-red-600">₹{cashFlow.cashOutflows?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="flex justify-between pl-4">
+                    <span className="text-xs text-gray-500">Purchase Outflows:</span>
+                    <span className="text-xs text-gray-700">₹{cashFlow.purchaseOutflows?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="flex justify-between pl-4">
+                    <span className="text-xs text-gray-500">Payroll Outflows:</span>
+                    <span className="text-xs text-gray-700">₹{cashFlow.payrollOutflows?.toFixed(2) || "0.00"}</span>
+                  </div>
+                  <div className="border-t border-gray-200 pt-2 mt-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium text-gray-900">Net Cash Flow:</span>
+                      <span className={`text-sm font-semibold ${cashFlow.netCashFlow >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        ₹{cashFlow.netCashFlow?.toFixed(2) || "0.00"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Low Stock Alerts */}
         {lowStockItems.length > 0 && (

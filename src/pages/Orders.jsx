@@ -13,6 +13,8 @@ export default function Orders() {
   const [searchParams] = useSearchParams();
   const [menu, setMenu] = useState([]);
   const [tables, setTables] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+  const [selectedOutlet, setSelectedOutlet] = useState("");
   const [tableId, setTableId] = useState("");
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -37,6 +39,19 @@ export default function Orders() {
       setTables(res.data);
     } catch (err) {
       toast.error("Failed to load tables");
+    }
+  };
+
+  const loadOutlets = async () => {
+    try {
+      const res = await API.get("/outlets/active");
+      setOutlets(res.data);
+      if (res.data.length > 0 && !selectedOutlet) {
+        setSelectedOutlet(res.data[0].id); // Auto-select first outlet
+      }
+    } catch (err) {
+      // Outlets might not be available, continue without them
+      console.log("Outlets not available");
     }
   };
 
@@ -91,6 +106,7 @@ export default function Orders() {
   useEffect(() => {
     loadMenu();
     loadTables();
+    loadOutlets();
     loadOrders();
 
     // Connect to WebSocket for real-time order updates
@@ -156,6 +172,7 @@ export default function Orders() {
     try {
       const payload = {
         tableId,
+        outletId: selectedOutlet || null,
         items: cart.map((c) => ({ menuItemId: c.id, quantity: c.qty })),
       };
       await API.post("/orders/create", payload);
@@ -221,23 +238,43 @@ export default function Orders() {
           {/* Cart & Order Summary */}
           <div className="space-y-6">
             <div className="card">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Table</label>
-                <select
-                  className="input-field"
-                  value={tableId}
-                  onChange={(e) => setTableId(e.target.value)}
-                >
-                  <option value="">-- Select a Table --</option>
-                  {tables.map((table) => (
-                    <option key={table.id} value={table.id}>
-                      {table.tableNumber} {table.occupied ? "(Occupied)" : "(Available)"}
-                    </option>
-                  ))}
-                </select>
-                {tables.length === 0 && (
-                  <p className="text-sm text-gray-500 mt-2">No tables available. Please create tables first.</p>
+              <div className="mb-4 space-y-3">
+                {outlets.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Outlet</label>
+                    <select
+                      className="input-field"
+                      value={selectedOutlet}
+                      onChange={(e) => setSelectedOutlet(e.target.value)}
+                    >
+                      {outlets.map((outlet) => (
+                        <option key={outlet.id} value={outlet.id}>
+                          {outlet.name} ({outlet.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Table</label>
+                  <select
+                    className="input-field"
+                    value={tableId}
+                    onChange={(e) => setTableId(e.target.value)}
+                  >
+                    <option value="">-- Select a Table --</option>
+                    {tables
+                      .filter((table) => !selectedOutlet || !table.outlet || table.outlet.id === selectedOutlet)
+                      .map((table) => (
+                        <option key={table.id} value={table.id}>
+                          {table.tableNumber} {table.occupied ? "(Occupied)" : "(Available)"}
+                        </option>
+                      ))}
+                  </select>
+                  {tables.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-2">No tables available. Please create tables first.</p>
+                  )}
+                </div>
               </div>
 
               <h3 className="text-base font-medium text-gray-900 mb-4">Cart ({cart.length} items)</h3>
