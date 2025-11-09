@@ -9,6 +9,8 @@ import Orders from "./pages/Orders";
 import Kitchen from "./pages/Kitchen";
 import Analytics from "./pages/Analytics";
 import Tables from "./pages/Tables";
+import Billing from "./pages/Billing";
+import Inventory from "./pages/Inventory";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -63,6 +65,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN", "CASHIER"]}>
               <Tables />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/billing" 
+          element={
+            <ProtectedRoute allowedRoles={["CASHIER", "ADMIN"]}>
+              <Billing />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/inventory" 
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <Inventory />
             </ProtectedRoute>
           }
         />

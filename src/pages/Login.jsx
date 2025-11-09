@@ -7,12 +7,15 @@ export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [confirmationRequired, setConfirmationRequired] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
     
     try {
       // Use Cognito signin endpoint
@@ -41,6 +44,16 @@ export default function Login() {
         
         // Store Cognito ID token
         login(data.idToken, role);
+        
+        // Store remember me preference
+        if (rememberMe) {
+          localStorage.setItem("rememberMe", "true");
+          localStorage.setItem("rememberedEmail", form.email);
+        } else {
+          localStorage.removeItem("rememberMe");
+          localStorage.removeItem("rememberedEmail");
+        }
+        
         navigate("/dashboard");
       } else {
         const errorMsg = data.error || data.message || "Invalid credentials";
@@ -54,6 +67,8 @@ export default function Login() {
     } catch (err) {
       setError("Invalid credentials. Please try again.");
       console.error("Login error:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -232,12 +247,26 @@ export default function Login() {
                 required
               />
             </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700">
+                Remember me
+              </label>
+            </div>
             
             <button 
               type="submit"
-              className="btn-primary w-full py-3"
+              disabled={isLoading}
+              className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </button>
           </form>
           

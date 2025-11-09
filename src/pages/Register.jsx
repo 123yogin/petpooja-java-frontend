@@ -11,15 +11,60 @@ export default function Register() {
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, feedback: "" });
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [confirmationRequired, setConfirmationRequired] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState("");
   const [userEmail, setUserEmail] = useState(""); // Store email for confirmation
   const [userRole, setUserRole] = useState(""); // Store role for confirmation
 
+  const calculatePasswordStrength = (password) => {
+    let score = 0;
+    let feedback = [];
+
+    if (password.length >= 8) score += 1;
+    else feedback.push("At least 8 characters");
+
+    if (/[a-z]/.test(password)) score += 1;
+    else feedback.push("Lowercase letter");
+
+    if (/[A-Z]/.test(password)) score += 1;
+    else feedback.push("Uppercase letter");
+
+    if (/[0-9]/.test(password)) score += 1;
+    else feedback.push("Number");
+
+    if (/[^a-zA-Z0-9]/.test(password)) score += 1;
+    else feedback.push("Special character");
+
+    return { score, feedback: feedback.length > 0 ? feedback.join(", ") : "Strong password" };
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setForm({ ...form, password: newPassword });
+    if (newPassword) {
+      setPasswordStrength(calculatePasswordStrength(newPassword));
+    } else {
+      setPasswordStrength({ score: 0, feedback: "" });
+    }
+  };
+
+  const getPasswordStrengthColor = (score) => {
+    if (score <= 2) return "bg-red-500";
+    if (score <= 3) return "bg-yellow-500";
+    return "bg-green-500";
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setError("");
+
+    if (!termsAccepted) {
+      setError("Please accept the terms and conditions");
+      return;
+    }
     
     try {
       // Use Cognito signup endpoint
@@ -241,9 +286,32 @@ export default function Register() {
                 placeholder="Enter your password" 
                 className="input-field"
                 value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })} 
+                onChange={handlePasswordChange} 
                 required
               />
+              {form.password && (
+                <div className="mt-2">
+                  <div className="flex gap-1 mb-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className={`h-1 flex-1 rounded ${
+                          i <= passwordStrength.score
+                            ? getPasswordStrengthColor(passwordStrength.score)
+                            : "bg-gray-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className={`text-xs ${
+                    passwordStrength.score <= 2 ? "text-red-600" :
+                    passwordStrength.score <= 3 ? "text-yellow-600" :
+                    "text-green-600"
+                  }`}>
+                    {passwordStrength.feedback}
+                  </p>
+                </div>
+              )}
             </div>
             
             <div>
@@ -257,7 +325,22 @@ export default function Register() {
                 <option value="ADMIN">Admin</option>
                 <option value="MANAGER">Manager</option>
                 <option value="CASHIER">Cashier</option>
+                <option value="KITCHEN">Kitchen</option>
               </select>
+            </div>
+
+            <div className="flex items-start">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                required
+              />
+              <label htmlFor="terms" className="ml-2 text-sm text-gray-700">
+                I accept the terms and conditions
+              </label>
             </div>
             
             <button 

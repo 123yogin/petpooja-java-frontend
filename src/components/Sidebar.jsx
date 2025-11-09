@@ -11,7 +11,9 @@ export default function Sidebar() {
     { path: "/menu", label: "Menu", roles: ["ADMIN"] },
     { path: "/tables", label: "Tables", roles: ["ADMIN", "CASHIER"] },
     { path: "/orders", label: "Orders", roles: ["CASHIER", "ADMIN"] },
+    { path: "/billing", label: "Billing", roles: ["CASHIER", "ADMIN"] },
     { path: "/kitchen", label: "Kitchen", roles: ["KITCHEN", "ADMIN"] },
+    { path: "/inventory", label: "Inventory", roles: ["ADMIN"] },
     { path: "/analytics", label: "Analytics", roles: ["ADMIN", "MANAGER"] },
   ];
 
