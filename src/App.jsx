@@ -24,6 +24,7 @@ import AccountsReceivable from "./pages/AccountsReceivable";
 import Outlets from "./pages/Outlets";
 import AccessDenied from "./pages/AccessDenied";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CustomerOrder from "./pages/CustomerOrder";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/customer/order" element={<CustomerOrder />} />
         <Route 
           path="/dashboard" 
           element={

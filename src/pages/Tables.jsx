@@ -15,6 +15,8 @@ export default function Tables() {
   const [showQuickOrder, setShowQuickOrder] = useState(false);
   const [quickOrderTable, setQuickOrderTable] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [qrCodeModal, setQrCodeModal] = useState(false);
+  const [selectedTableQr, setSelectedTableQr] = useState(null);
 
   const loadTables = async () => {
     try {
@@ -108,6 +110,36 @@ export default function Tables() {
     }
   };
 
+  const showQrCode = async (tableId) => {
+    try {
+      const res = await API.get(`/tables/${tableId}/qr-code`);
+      setSelectedTableQr(res.data);
+      setQrCodeModal(true);
+    } catch (err) {
+      toast.error("Failed to load QR code");
+      console.error("QR code error:", err);
+    }
+  };
+
+  const downloadQrCode = async (tableId, tableNumber) => {
+    try {
+      const res = await API.get(`/tables/${tableId}/qr-code/download`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `table-${tableNumber}-qr.png`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("QR code downloaded");
+    } catch (err) {
+      toast.error("Failed to download QR code");
+      console.error("Download error:", err);
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -183,6 +215,12 @@ export default function Tables() {
                       className="px-3 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 hover:text-gray-900 rounded-lg text-sm font-medium transition-colors"
                     >
                       Delete
+                    </button>
+                    <button
+                      onClick={() => showQrCode(t.id)}
+                      className="px-3 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      QR Code
                     </button>
                   </div>
                 </div>
@@ -350,6 +388,36 @@ export default function Tables() {
                     Cancel
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* QR Code Modal */}
+        {qrCodeModal && selectedTableQr && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-6 rounded-lg max-w-md w-full">
+              <h3 className="text-xl font-bold mb-4">QR Code - Table {selectedTableQr.tableNumber}</h3>
+              <div className="text-center mb-4">
+                <img src={selectedTableQr.qrCodeImage} alt="QR Code" className="mx-auto border-2 border-gray-200 rounded" />
+              </div>
+              <p className="text-sm text-gray-600 mb-4 text-center break-all">{selectedTableQr.qrCodeUrl}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => downloadQrCode(selectedTableQr.tableId, selectedTableQr.tableNumber)}
+                  className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                >
+                  Download
+                </button>
+                <button
+                  onClick={() => {
+                    setQrCodeModal(false);
+                    setSelectedTableQr(null);
+                  }}
+                  className="flex-1 bg-gray-300 text-gray-800 py-2 rounded hover:bg-gray-400"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
