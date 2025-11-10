@@ -13,6 +13,8 @@ export default function CustomerOrder() {
   const [cart, setCart] = useState([]);
   const [existingOrderItems, setExistingOrderItems] = useState([]); // Store existing order items separately
   const [existingOrder, setExistingOrder] = useState(null);
+  const [hasCompletedOrders, setHasCompletedOrders] = useState(false);
+  const [completedOrdersCount, setCompletedOrdersCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -25,11 +27,22 @@ export default function CustomerOrder() {
     }
     loadTableInfo();
     loadMenu();
+    
+    // Poll for table status changes (e.g., when bill is generated)
+    // Use silent mode to avoid toast spam during polling
+    const pollInterval = setInterval(() => {
+      loadTableInfo(true); // silent = true to avoid toast on polling
+    }, 5000); // Check every 5 seconds
+    
+    return () => clearInterval(pollInterval);
   }, [tableId]);
 
-  const loadTableInfo = async () => {
+  const loadTableInfo = async (silent = false) => {
     try {
       const res = await API.get(`/customer/table/${tableId}`);
+      const previousHasCompletedOrders = hasCompletedOrders;
+      const previousExistingOrder = existingOrder;
+      
       setTable(res.data);
       
       // If there's an existing active order, store it but keep cart empty for new items
@@ -47,12 +60,33 @@ export default function CustomerOrder() {
         setExistingOrderItems(existingItems);
         // Don't add existing items to cart - cart is only for new items to add
         setCart([]);
+        setHasCompletedOrders(false);
+        setCompletedOrdersCount(0);
       } else {
         setExistingOrderItems([]);
         setExistingOrder(null);
+        // Check if there are completed orders
+        if (res.data.hasCompletedOrders) {
+          setHasCompletedOrders(true);
+          setCompletedOrdersCount(res.data.completedOrdersCount || 0);
+        } else {
+          // If bills were generated (completed orders disappeared), refresh the page state
+          if (previousHasCompletedOrders && !res.data.hasCompletedOrders && !silent) {
+            // Bill was generated - reset everything for new customer
+            setCart([]);
+            setExistingOrderItems([]);
+            setOrderId(null);
+            setOrderPlaced(false);
+            toast.success("Table is now available for new orders!");
+          }
+          setHasCompletedOrders(false);
+          setCompletedOrdersCount(0);
+        }
       }
     } catch (err) {
-      toast.error("Table not found");
+      if (!silent) {
+        toast.error("Table not found");
+      }
       console.error("Table load error:", err);
     }
   };
@@ -144,6 +178,12 @@ export default function CustomerOrder() {
     } catch (err) {
       const errorMsg = err.response?.data?.error || "Failed to place order";
       toast.error(errorMsg);
+      
+      // If there are unbilled orders, reload table info to show the correct state
+      if (err.response?.data?.hasUnbilledOrders) {
+        await loadTableInfo();
+      }
+      
       console.error("Order error:", err);
     } finally {
       setSubmitting(false);
@@ -248,6 +288,22 @@ export default function CustomerOrder() {
                   <p className="text-xs text-blue-600 mt-1">
                     Current Total: ₹{existingOrder.totalAmount?.toFixed(2) || "0.00"}
                   </p>
+                </div>
+              )}
+              
+              {hasCompletedOrders && !existingOrder && (
+                <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-sm text-green-800">
+                    <strong>Previous Order Completed!</strong>
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    You can now place a new order. All orders will be combined in your final bill.
+                  </p>
+                  {completedOrdersCount > 0 && (
+                    <p className="text-xs text-green-600 mt-1">
+                      You have {completedOrdersCount} completed order{completedOrdersCount > 1 ? 's' : ''} for this table.
+                    </p>
+                  )}
                 </div>
               )}
               

@@ -12,8 +12,6 @@ export default function Tables() {
   const [location, setLocation] = useState("");
   const [selectedTable, setSelectedTable] = useState(null);
   const [tableOrders, setTableOrders] = useState([]);
-  const [showQuickOrder, setShowQuickOrder] = useState(false);
-  const [quickOrderTable, setQuickOrderTable] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [qrCodeModal, setQrCodeModal] = useState(false);
   const [selectedTableQr, setSelectedTableQr] = useState(null);
@@ -90,11 +88,6 @@ export default function Tables() {
     } catch (err) {
       toast.error("Failed to update table");
     }
-  };
-
-  const handleQuickOrder = (table) => {
-    setQuickOrderTable(table);
-    setShowQuickOrder(true);
   };
 
   const viewTableDetails = async (table) => {
@@ -196,14 +189,6 @@ export default function Tables() {
                     >
                       View Details
                     </button>
-                    {!t.occupied && (
-                      <button
-                        onClick={() => handleQuickOrder(t)}
-                        className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-                      >
-                        Create Order
-                      </button>
-                    )}
                     <button
                       onClick={() => toggleOccupied(t)}
                       className="px-3 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 hover:text-gray-900 rounded-lg text-sm font-medium transition-colors"
@@ -339,54 +324,6 @@ export default function Tables() {
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Order Modal */}
-        {showQuickOrder && quickOrderTable && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Create Order for Table {quickOrderTable.tableNumber}
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setShowQuickOrder(false);
-                      setQuickOrderTable(null);
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Redirecting to Orders page to create an order for this table...
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      window.location.href = `/orders?table=${quickOrderTable.id}`;
-                    }}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                  >
-                    Go to Orders
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowQuickOrder(false);
-                      setQuickOrderTable(null);
-                    }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
-                  >
-                    Cancel
-                  </button>
                 </div>
               </div>
             </div>

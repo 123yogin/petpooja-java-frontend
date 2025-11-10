@@ -14,7 +14,12 @@ export default function Billing() {
   const [orderBillsMap, setOrderBillsMap] = useState({}); // Map orderId -> billId
   const [selectedBill, setSelectedBill] = useState(null);
   const [invoiceText, setInvoiceText] = useState("");
+  const [billItems, setBillItems] = useState([]);
+  const [isCombinedBill, setIsCombinedBill] = useState(false);
+  const [orderCount, setOrderCount] = useState(0);
   const [selectedCustomerForOrder, setSelectedCustomerForOrder] = useState({}); // Map orderId -> customerId
+  const [selectedCustomerForTable, setSelectedCustomerForTable] = useState({}); // Map tableId -> customerId
+  const [tables, setTables] = useState([]);
 
   const loadOrders = async () => {
     try {
@@ -58,9 +63,19 @@ export default function Billing() {
     }
   };
 
+  const loadTables = async () => {
+    try {
+      const res = await API.get("/tables");
+      setTables(res.data);
+    } catch (err) {
+      console.log("Tables endpoint not available");
+    }
+  };
+
   useEffect(() => {
     loadBills();
     loadCustomers();
+    loadTables();
   }, []);
 
   const generateBill = async (orderId) => {
@@ -86,16 +101,52 @@ export default function Billing() {
     }
   };
 
+  const generateCombinedBillForTable = async (tableId) => {
+    try {
+      const payload = {};
+      if (selectedCustomerForTable[tableId]) {
+        payload.customerId = selectedCustomerForTable[tableId];
+      }
+      const res = await API.post(`/billing/generate/table/${tableId}`, payload);
+      toast.success("Combined bill generated successfully for all orders!");
+      loadOrders();
+      // Automatically show the generated bill
+      setSelectedBill(res.data);
+      // Clear customer selection for this table
+      const newCustomerMap = { ...selectedCustomerForTable };
+      delete newCustomerMap[tableId];
+      setSelectedCustomerForTable(newCustomerMap);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || "Failed to generate combined bill";
+      toast.error(errorMsg);
+      console.error("Combined bill generation error:", err);
+    }
+  };
+
   const viewBill = async (billId) => {
     try {
-      const [billRes, invoiceRes] = await Promise.all([
+      const [billRes, itemsRes] = await Promise.all([
         API.get(`/billing/${billId}`),
-        API.get(`/billing/${billId}/invoice`),
+        API.get(`/billing/${billId}/items`),
       ]);
       setSelectedBill(billRes.data);
-      setInvoiceText(invoiceRes.data);
+      setBillItems(itemsRes.data.items || []);
+      setIsCombinedBill(itemsRes.data.isCombinedBill || false);
+      setOrderCount(itemsRes.data.orderCount || 1);
+      setInvoiceText(""); // Clear invoice text initially
     } catch (err) {
       toast.error("Failed to load bill details");
+      console.error("View bill error:", err);
+    }
+  };
+
+  const loadInvoiceText = async (billId) => {
+    try {
+      const invoiceRes = await API.get(`/billing/${billId}/invoice`);
+      setInvoiceText(invoiceRes.data);
+    } catch (err) {
+      toast.error("Failed to load invoice");
+      console.error("Invoice load error:", err);
     }
   };
 
@@ -162,6 +213,82 @@ export default function Billing() {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 mb-1">Billing</h1>
           <p className="text-sm text-gray-500">Generate and manage bills for completed orders</p>
+        </div>
+
+        {/* Combined Bills by Table */}
+        <div className="card">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">
+            Generate Combined Bill by Table
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Generate a single bill combining all completed orders for a table
+          </p>
+          {tables.length === 0 ? (
+            <p className="text-gray-500 text-center py-8 text-sm">No tables available</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tables.map((table) => {
+                const tableOrders = orders.filter((o) => o.table?.id === table.id);
+                const hasUnbilledOrders = tableOrders.some((o) => !orderBillsMap[o.id]);
+                
+                if (tableOrders.length === 0 || !hasUnbilledOrders) {
+                  return null;
+                }
+                
+                const totalAmount = tableOrders
+                  .filter((o) => !orderBillsMap[o.id])
+                  .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+                
+                return (
+                  <div key={table.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Table {table.tableNumber}</h3>
+                        {table.location && (
+                          <p className="text-xs text-gray-500">{table.location}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mb-3">
+                      <p className="text-sm text-gray-600">
+                        {tableOrders.filter((o) => !orderBillsMap[o.id]).length} order(s) ready for billing
+                      </p>
+                      <p className="text-sm font-medium text-gray-900 mt-1">
+                        Total: ₹{totalAmount.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="mb-3">
+                      <select
+                        className="input-field text-sm w-full"
+                        value={selectedCustomerForTable[table.id] || ""}
+                        onChange={(e) => {
+                          setSelectedCustomerForTable({
+                            ...selectedCustomerForTable,
+                            [table.id]: e.target.value || null,
+                          });
+                        }}
+                      >
+                        <option value="">Walk-in Customer</option>
+                        {customers.map((customer) => (
+                          <option key={customer.id} value={customer.id}>
+                            {customer.name} {customer.gstin ? `(${customer.gstin})` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {can(userRole, "canGenerateBills") && (
+                      <button
+                        onClick={() => generateCombinedBillForTable(table.id)}
+                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium transition-colors"
+                      >
+                        Generate Combined Bill
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Orders Ready for Billing */}
@@ -308,9 +435,13 @@ export default function Billing() {
                         <p className="font-mono text-sm text-gray-900">{selectedBill.id}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Order ID</p>
+                        <p className="text-sm text-gray-500 mb-1">
+                          {isCombinedBill ? "Orders" : "Order ID"}
+                        </p>
                         <p className="font-mono text-sm text-gray-900">
-                          {selectedBill.order?.id?.substring(0, 8)}...
+                          {isCombinedBill 
+                            ? `${orderCount} orders combined`
+                            : `${selectedBill.order?.id?.substring(0, 8)}...`}
                         </p>
                       </div>
                       <div>
@@ -365,12 +496,44 @@ export default function Billing() {
                         <p className="text-2xl font-bold text-gray-900">₹{selectedBill.grandTotal?.toFixed(2)}</p>
                       </div>
                     </div>
+                    
+                    {/* Items List */}
+                    {billItems.length > 0 && (
+                      <div className="mt-6 pt-4 border-t">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Ordered Items</h3>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-gray-200">
+                                <th className="text-left p-2 font-medium text-gray-700">Item</th>
+                                <th className="text-left p-2 font-medium text-gray-700">HSN</th>
+                                <th className="text-right p-2 font-medium text-gray-700">Qty</th>
+                                <th className="text-right p-2 font-medium text-gray-700">Rate</th>
+                                <th className="text-right p-2 font-medium text-gray-700">Amount</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {billItems.map((item, index) => (
+                                <tr key={item.menuItemId || index} className="border-b border-gray-100">
+                                  <td className="p-2 text-gray-900">{item.name}</td>
+                                  <td className="p-2 text-gray-600">{item.hsnCode || "N/A"}</td>
+                                  <td className="p-2 text-right text-gray-900">{item.quantity}</td>
+                                  <td className="p-2 text-right text-gray-900">₹{item.unitPrice?.toFixed(2) || "0.00"}</td>
+                                  <td className="p-2 text-right font-medium text-gray-900">₹{item.price?.toFixed(2) || "0.00"}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex gap-3 pt-4 border-t">
                       <button
-                        onClick={() => viewBill(selectedBill.id)}
+                        onClick={() => loadInvoiceText(selectedBill.id)}
                         className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
                       >
-                        View Invoice
+                        View Invoice Text
                       </button>
                       <button
                         onClick={() => downloadInvoice(selectedBill.id)}
