@@ -13,12 +13,15 @@ export default function CustomerOrder() {
   const [cart, setCart] = useState([]);
   const [existingOrderItems, setExistingOrderItems] = useState([]); // Store existing order items separately
   const [existingOrder, setExistingOrder] = useState(null);
+  const [completedOrder, setCompletedOrder] = useState(null); // Store completed order for bill generation
   const [hasCompletedOrders, setHasCompletedOrders] = useState(false);
   const [completedOrdersCount, setCompletedOrdersCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [bill, setBill] = useState(null);
+  const [showBill, setShowBill] = useState(false);
+  const [generatingBill, setGeneratingBill] = useState(false);
 
   useEffect(() => {
     if (!tableId) {
@@ -49,6 +52,7 @@ export default function CustomerOrder() {
       if (res.data.activeOrder) {
         setExistingOrder(res.data.activeOrder);
         setOrderId(res.data.activeOrder.orderId);
+        setCompletedOrder(null); // Clear completed order if active order exists
         
         // Store existing order items separately (for display only)
         const existingItems = res.data.activeOrder.items.map(item => ({
@@ -62,9 +66,34 @@ export default function CustomerOrder() {
         setCart([]);
         setHasCompletedOrders(false);
         setCompletedOrdersCount(0);
+      } else if (res.data.completedOrder) {
+        // There's a completed order (no active order)
+        setExistingOrder(null);
+        setCompletedOrder(res.data.completedOrder);
+        setOrderId(res.data.completedOrder.orderId);
+        
+        // Store completed order items for display
+        const completedItems = res.data.completedOrder.items.map(item => ({
+          menuItemId: item.menuItem.id,
+          name: item.menuItem.name,
+          price: item.menuItem.price,
+          quantity: item.quantity
+        }));
+        setExistingOrderItems(completedItems);
+        setCart([]);
+        
+        // Check if there are other completed orders
+        if (res.data.hasCompletedOrders) {
+          setHasCompletedOrders(true);
+          setCompletedOrdersCount(res.data.completedOrdersCount || 0);
+        } else {
+          setHasCompletedOrders(false);
+          setCompletedOrdersCount(0);
+        }
       } else {
         setExistingOrderItems([]);
         setExistingOrder(null);
+        setCompletedOrder(null);
         // Check if there are completed orders
         if (res.data.hasCompletedOrders) {
           setHasCompletedOrders(true);
@@ -76,7 +105,6 @@ export default function CustomerOrder() {
             setCart([]);
             setExistingOrderItems([]);
             setOrderId(null);
-            setOrderPlaced(false);
             toast.success("Table is now available for new orders!");
           }
           setHasCompletedOrders(false);
@@ -143,6 +171,54 @@ export default function CustomerOrder() {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   };
 
+  const generateBill = async () => {
+    // Use orderId from either existingOrder or completedOrder
+    const currentOrderId = orderId || (completedOrder?.orderId) || (existingOrder?.orderId);
+    if (!currentOrderId) {
+      toast.error("No order found");
+      return;
+    }
+    
+    setGeneratingBill(true);
+    try {
+      const res = await API.post(`/customer/order/${currentOrderId}/generate-bill?tableId=${tableId}`);
+      setBill(res.data);
+      setShowBill(true);
+      toast.success("Bill generated successfully!");
+      // Reload table info - this will clear previous orders since bill is generated
+      await loadTableInfo();
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || "Failed to generate bill";
+      toast.error(errorMsg);
+      console.error("Bill generation error:", err);
+    } finally {
+      setGeneratingBill(false);
+    }
+  };
+
+  const downloadBill = async (billId) => {
+    try {
+      const res = await API.get(`/customer/bill/${billId}/download?tableId=${tableId}`, {
+        responseType: "blob",
+      });
+      
+      if (res.data instanceof Blob) {
+        const url = window.URL.createObjectURL(res.data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `bill-${billId}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success("Bill downloaded!");
+      }
+    } catch (err) {
+      toast.error("Failed to download bill");
+      console.error("Download error:", err);
+    }
+  };
+
   const placeOrder = async () => {
     if (cart.length === 0) {
       toast.error("Your cart is empty");
@@ -162,19 +238,12 @@ export default function CustomerOrder() {
       const res = await API.post("/customer/order", payload);
       setOrderId(res.data.orderId);
       
-      // If it's a new order, show success message and reset
-      if (res.data.isNewOrder) {
-        setOrderPlaced(true);
-        setCart([]);
-        setExistingOrder(null);
-        toast.success(res.data.message || "Order placed successfully!");
-      } else {
-        // Items added to existing order - reload table info to get updated order
-        setCart([]);
-        toast.success(res.data.message || "Items added to existing order!");
-        // Reload table info to get updated order with all items
-        await loadTableInfo();
-      }
+      // Clear cart and show success message
+      setCart([]);
+      toast.success(res.data.message || "Order placed successfully!");
+      
+      // Reload table info to get updated order with all items
+      await loadTableInfo();
     } catch (err) {
       const errorMsg = err.response?.data?.error || "Failed to place order";
       toast.error(errorMsg);
@@ -201,35 +270,6 @@ export default function CustomerOrder() {
     );
   }
 
-  if (orderPlaced) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-          <div className="mb-4">
-            <svg className="mx-auto h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h2>
-          <p className="text-gray-600 mb-4">Your order has been received and will be prepared shortly.</p>
-          {orderId && (
-            <p className="text-sm text-gray-500 mb-6">Order ID: {orderId.substring(0, 8)}...</p>
-          )}
-          <button
-            onClick={() => {
-              setOrderPlaced(false);
-              setOrderId(null);
-              setCart([]);
-              loadTableInfo();
-            }}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Add More Items
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -288,10 +328,54 @@ export default function CustomerOrder() {
                   <p className="text-xs text-blue-600 mt-1">
                     Current Total: ₹{existingOrder.totalAmount?.toFixed(2) || "0.00"}
                   </p>
+                  {existingOrder.status === "COMPLETED" && (
+                    <button
+                      onClick={generateBill}
+                      disabled={generatingBill}
+                      className="mt-2 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {generatingBill ? "Generating Bill..." : "Generate Bill"}
+                    </button>
+                  )}
+                  {existingOrder.status !== "COMPLETED" && (
+                    <p className="mt-2 text-xs text-gray-600">
+                      Please wait for your order to be completed before generating the bill.
+                    </p>
+                  )}
                 </div>
               )}
               
-              {hasCompletedOrders && !existingOrder && (
+              {completedOrder && !existingOrder && (
+                <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <p className="text-sm text-green-800">
+                    <strong>Order Completed!</strong>
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    Total: ₹{completedOrder.totalAmount?.toFixed(2) || "0.00"}
+                  </p>
+                  {!completedOrder.hasBill && (
+                    <button
+                      onClick={generateBill}
+                      disabled={generatingBill}
+                      className="mt-2 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {generatingBill ? "Generating Bill..." : "Generate Bill"}
+                    </button>
+                  )}
+                  {completedOrder.hasBill && (
+                    <p className="mt-2 text-xs text-green-700">
+                      Bill already generated for this order.
+                    </p>
+                  )}
+                  {hasCompletedOrders && completedOrdersCount > 0 && (
+                    <p className="text-xs text-green-600 mt-2">
+                      You have {completedOrdersCount} more completed order{completedOrdersCount > 1 ? 's' : ''} for this table.
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              {hasCompletedOrders && !existingOrder && !completedOrder && (
                 <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
                   <p className="text-sm text-green-800">
                     <strong>Previous Order Completed!</strong>
@@ -397,6 +481,152 @@ export default function CustomerOrder() {
           </div>
         </div>
       </div>
+
+      {/* Bill Display Modal */}
+      {showBill && bill && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Your Bill</h2>
+                <button
+                  onClick={() => {
+                    setShowBill(false);
+                    setBill(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Bill ID</p>
+                    <p className="font-mono text-sm text-gray-900">{bill.billId.substring(0, 8)}...</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Order ID</p>
+                    <p className="font-mono text-sm text-gray-900">{bill.orderId.substring(0, 8)}...</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Table</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {table?.tableNumber || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Date</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {bill.generatedAt ? new Date(bill.generatedAt).toLocaleString() : "N/A"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Items List */}
+                {bill.items && bill.items.length > 0 && (
+                  <div className="mt-6 pt-4 border-t">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Ordered Items</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left p-2 font-medium text-gray-700">Item</th>
+                            <th className="text-left p-2 font-medium text-gray-700">HSN</th>
+                            <th className="text-right p-2 font-medium text-gray-700">Qty</th>
+                            <th className="text-right p-2 font-medium text-gray-700">Rate</th>
+                            <th className="text-right p-2 font-medium text-gray-700">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bill.items.map((item, index) => (
+                            <tr key={item.menuItemId || index} className="border-b border-gray-100">
+                              <td className="p-2 text-gray-900">{item.name}</td>
+                              <td className="p-2 text-gray-600">{item.hsnCode || "N/A"}</td>
+                              <td className="p-2 text-right text-gray-900">{item.quantity}</td>
+                              <td className="p-2 text-right text-gray-900">₹{item.unitPrice?.toFixed(2) || "0.00"}</td>
+                              <td className="p-2 text-right font-medium text-gray-900">₹{item.price?.toFixed(2) || "0.00"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Totals */}
+                <div className="mt-6 pt-4 border-t">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Subtotal:</span>
+                      <span>₹{bill.totalAmount?.toFixed(2) || "0.00"}</span>
+                    </div>
+                    {bill.discountAmount > 0 && (
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Discount:</span>
+                        <span>-₹{bill.discountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {bill.isInterState ? (
+                      bill.igst > 0 && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>IGST:</span>
+                          <span>₹{bill.igst.toFixed(2)}</span>
+                        </div>
+                      )
+                    ) : (
+                      <>
+                        {bill.cgst > 0 && (
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>CGST:</span>
+                            <span>₹{bill.cgst.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {bill.sgst > 0 && (
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>SGST:</span>
+                            <span>₹{bill.sgst.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div className="flex justify-between text-sm text-gray-600 pt-2 border-t">
+                      <span>Total Tax:</span>
+                      <span>₹{bill.tax?.toFixed(2) || "0.00"}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <span className="text-lg font-bold text-gray-800">Grand Total:</span>
+                      <span className="text-2xl font-bold text-blue-600">₹{bill.grandTotal?.toFixed(2) || "0.00"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <button
+                    onClick={() => downloadBill(bill.billId)}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                  >
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowBill(false);
+                      setBill(null);
+                    }}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
