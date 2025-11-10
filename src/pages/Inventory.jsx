@@ -9,6 +9,7 @@ export default function Inventory() {
   const [form, setForm] = useState({ name: "", quantity: "", unit: "", threshold: "" });
   const [linkForm, setLinkForm] = useState({ menuItemId: "", ingredientId: "", quantityRequired: "" });
   const [editingId, setEditingId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const loadIngredients = async () => {
     try {
@@ -43,6 +44,7 @@ export default function Inventory() {
         threshold: parseFloat(form.threshold),
       });
       setForm({ name: "", quantity: "", unit: "", threshold: "" });
+      setShowModal(false);
       toast.success("Ingredient added!");
       loadIngredients();
     } catch (err) {
@@ -57,6 +59,7 @@ export default function Inventory() {
       loadIngredients();
       setEditingId(null);
       setForm({ name: "", quantity: "", unit: "", threshold: "" });
+      setShowModal(false);
     } catch (err) {
       toast.error("Failed to update ingredient");
     }
@@ -94,71 +97,14 @@ export default function Inventory() {
           <p className="text-sm text-gray-500">Manage ingredients and stock levels</p>
         </div>
 
-        {/* Add Ingredient Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {editingId ? "Edit Ingredient" : "Add New Ingredient"}
-          </h2>
-          <form onSubmit={editingId ? (e) => {
-            e.preventDefault();
-            const ingredient = ingredients.find((i) => i.id === editingId);
-            updateIngredient(editingId, {
-              name: form.name || ingredient.name,
-              quantity: form.quantity ? parseFloat(form.quantity) : ingredient.quantity,
-              unit: form.unit || ingredient.unit,
-              threshold: form.threshold ? parseFloat(form.threshold) : ingredient.threshold,
-            });
-          } : addIngredient} className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <input
-              placeholder="Ingredient Name"
-              className="input-field"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required={!editingId}
-            />
-            <input
-              placeholder="Quantity"
-              type="number"
-              step="0.01"
-              className="input-field"
-              value={form.quantity}
-              onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-              required={!editingId}
-            />
-            <input
-              placeholder="Unit (g, ml, pcs)"
-              className="input-field"
-              value={form.unit}
-              onChange={(e) => setForm({ ...form, unit: e.target.value })}
-              required={!editingId}
-            />
-            <input
-              placeholder="Threshold"
-              type="number"
-              step="0.01"
-              className="input-field"
-              value={form.threshold}
-              onChange={(e) => setForm({ ...form, threshold: e.target.value })}
-              required={!editingId}
-            />
-            <div className="flex gap-2">
-              <button type="submit" className="btn-primary flex-1">
-                {editingId ? "Update" : "Add"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingId(null);
-                    setForm({ name: "", quantity: "", unit: "", threshold: "" });
-                  }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
+        <div className="flex justify-end">
+          <button onClick={() => {
+            setEditingId(null);
+            setForm({ name: "", quantity: "", unit: "", threshold: "" });
+            setShowModal(true);
+          }} className="btn-primary">
+            + Add New Ingredient
+          </button>
         </div>
 
         {/* Link Menu Item to Ingredient */}
@@ -248,6 +194,7 @@ export default function Inventory() {
                                 unit: ing.unit || "",
                                 threshold: ing.threshold.toString(),
                               });
+                              setShowModal(true);
                             }}
                             className="text-blue-600 hover:text-blue-700 text-sm font-medium mr-3 transition-colors"
                           >
@@ -262,6 +209,94 @@ export default function Inventory() {
             </div>
           )}
         </div>
+
+        {/* Add/Edit Ingredient Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {editingId ? "Edit Ingredient" : "Add New Ingredient"}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setEditingId(null);
+                      setForm({ name: "", quantity: "", unit: "", threshold: "" });
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form onSubmit={editingId ? (e) => {
+                  e.preventDefault();
+                  const ingredient = ingredients.find((i) => i.id === editingId);
+                  updateIngredient(editingId, {
+                    name: form.name || ingredient.name,
+                    quantity: form.quantity ? parseFloat(form.quantity) : ingredient.quantity,
+                    unit: form.unit || ingredient.unit,
+                    threshold: form.threshold ? parseFloat(form.threshold) : ingredient.threshold,
+                  });
+                } : addIngredient} className="space-y-4">
+                  <input
+                    placeholder="Ingredient Name"
+                    className="input-field w-full"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    required
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      placeholder="Quantity"
+                      type="number"
+                      step="0.01"
+                      className="input-field"
+                      value={form.quantity}
+                      onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Unit (g, ml, pcs)"
+                      className="input-field"
+                      value={form.unit}
+                      onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <input
+                    placeholder="Threshold"
+                    type="number"
+                    step="0.01"
+                    className="input-field w-full"
+                    value={form.threshold}
+                    onChange={(e) => setForm({ ...form, threshold: e.target.value })}
+                    required
+                  />
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      {editingId ? "Update" : "Add"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowModal(false);
+                        setEditingId(null);
+                        setForm({ name: "", quantity: "", unit: "", threshold: "" });
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

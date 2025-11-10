@@ -18,6 +18,7 @@ export default function Leaves() {
   });
   const [editingId, setEditingId] = useState(null);
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [showModal, setShowModal] = useState(false);
 
   const loadLeaves = async () => {
     try {
@@ -65,6 +66,7 @@ export default function Leaves() {
         reason: "",
         remarks: "",
       });
+      setShowModal(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to submit leave request");
     }
@@ -132,77 +134,20 @@ export default function Leaves() {
           <p className="text-sm text-gray-500">Manage employee leave requests and approvals</p>
         </div>
 
-        {/* Add Leave Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Request Leave</h2>
-          <form onSubmit={addLeave} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <select
-                name="employeeId"
-                className="input-field"
-                value={form.employeeId}
-                onChange={handleFormChange}
-                required
-              >
-                <option value="">Select Employee</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name} ({emp.employeeId})
-                  </option>
-                ))}
-              </select>
-              <select
-                name="leaveType"
-                className="input-field"
-                value={form.leaveType}
-                onChange={handleFormChange}
-                required
-              >
-                <option value="SICK">Sick Leave</option>
-                <option value="CASUAL">Casual Leave</option>
-                <option value="EARNED">Earned Leave</option>
-                <option value="UNPAID">Unpaid Leave</option>
-                <option value="MATERNITY">Maternity Leave</option>
-                <option value="PATERNITY">Paternity Leave</option>
-              </select>
-              <input
-                type="date"
-                name="startDate"
-                className="input-field"
-                value={form.startDate}
-                onChange={handleFormChange}
-                required
-              />
-              <input
-                type="date"
-                name="endDate"
-                className="input-field"
-                value={form.endDate}
-                onChange={handleFormChange}
-                required
-              />
-              <textarea
-                name="reason"
-                placeholder="Reason for leave *"
-                className="input-field w-full"
-                rows="3"
-                value={form.reason}
-                onChange={handleFormChange}
-                required
-              />
-              <textarea
-                name="remarks"
-                placeholder="Remarks (optional)"
-                className="input-field w-full"
-                rows="3"
-                value={form.remarks}
-                onChange={handleFormChange}
-              />
-            </div>
-            <button type="submit" className="btn-primary">
-              Submit Leave Request
-            </button>
-          </form>
+        <div className="flex justify-end">
+          <button onClick={() => {
+            setForm({
+              employeeId: "",
+              leaveType: "CASUAL",
+              startDate: "",
+              endDate: "",
+              reason: "",
+              remarks: "",
+            });
+            setShowModal(true);
+          }} className="btn-primary">
+            + Request Leave
+          </button>
         </div>
 
         {/* Leaves List */}
@@ -311,6 +256,124 @@ export default function Leaves() {
             </div>
           )}
         </div>
+
+        {/* Add Leave Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Request Leave</h2>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setForm({
+                        employeeId: "",
+                        leaveType: "CASUAL",
+                        startDate: "",
+                        endDate: "",
+                        reason: "",
+                        remarks: "",
+                      });
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form onSubmit={addLeave} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <select
+                      name="employeeId"
+                      className="input-field"
+                      value={form.employeeId}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="">Select Employee</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.employeeId})
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="leaveType"
+                      className="input-field"
+                      value={form.leaveType}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="SICK">Sick Leave</option>
+                      <option value="CASUAL">Casual Leave</option>
+                      <option value="EARNED">Earned Leave</option>
+                      <option value="UNPAID">Unpaid Leave</option>
+                      <option value="MATERNITY">Maternity Leave</option>
+                      <option value="PATERNITY">Paternity Leave</option>
+                    </select>
+                    <input
+                      type="date"
+                      name="startDate"
+                      className="input-field"
+                      value={form.startDate}
+                      onChange={handleFormChange}
+                      required
+                    />
+                    <input
+                      type="date"
+                      name="endDate"
+                      className="input-field"
+                      value={form.endDate}
+                      onChange={handleFormChange}
+                      required
+                    />
+                    <textarea
+                      name="reason"
+                      placeholder="Reason for leave *"
+                      className="input-field w-full md:col-span-2"
+                      rows="3"
+                      value={form.reason}
+                      onChange={handleFormChange}
+                      required
+                    />
+                    <textarea
+                      name="remarks"
+                      placeholder="Remarks (optional)"
+                      className="input-field w-full md:col-span-2"
+                      rows="3"
+                      value={form.remarks}
+                      onChange={handleFormChange}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      Submit Leave Request
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowModal(false);
+                        setForm({
+                          employeeId: "",
+                          leaveType: "CASUAL",
+                          startDate: "",
+                          endDate: "",
+                          reason: "",
+                          remarks: "",
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

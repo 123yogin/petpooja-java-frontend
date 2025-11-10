@@ -14,6 +14,7 @@ export default function Tables() {
   const [tableOrders, setTableOrders] = useState([]);
   const [showQuickOrder, setShowQuickOrder] = useState(false);
   const [quickOrderTable, setQuickOrderTable] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const loadTables = async () => {
     try {
@@ -54,6 +55,7 @@ export default function Tables() {
       setTableNumber("");
       setCapacity("");
       setLocation("");
+      setShowAddModal(false);
       toast.success("Table created!");
       loadTables();
     } catch (err) {
@@ -114,52 +116,10 @@ export default function Tables() {
           <p className="text-sm text-gray-500">Manage restaurant tables and their status</p>
         </div>
 
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Table</h2>
-          <form onSubmit={createTable} className="space-y-3">
-            {outlets.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Outlet</label>
-                <select
-                  className="input-field"
-                  value={selectedOutlet}
-                  onChange={(e) => setSelectedOutlet(e.target.value)}
-                >
-                  {outlets.map((outlet) => (
-                    <option key={outlet.id} value={outlet.id}>
-                      {outlet.name} ({outlet.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <input
-                placeholder="Table Number (e.g., T1)"
-                className="input-field"
-                value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value)}
-                required
-              />
-              <input
-                type="number"
-                placeholder="Capacity (optional)"
-                className="input-field"
-                value={capacity}
-                onChange={(e) => setCapacity(e.target.value)}
-                min="1"
-              />
-              <input
-                placeholder="Location (e.g., Floor 1)"
-                className="input-field"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-              />
-              <button type="submit" className="btn-primary">
-                Add Table
-              </button>
-            </div>
-          </form>
+        <div className="flex justify-end">
+          <button onClick={() => setShowAddModal(true)} className="btn-primary">
+            + Add New Table
+          </button>
         </div>
 
         <div className="card">
@@ -390,6 +350,90 @@ export default function Tables() {
                     Cancel
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Table Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Add New Table</h2>
+                  <button
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setTableNumber("");
+                      setCapacity("");
+                      setLocation("");
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form onSubmit={createTable} className="space-y-4">
+                  {outlets.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Select Outlet</label>
+                      <select
+                        className="input-field"
+                        value={selectedOutlet}
+                        onChange={(e) => setSelectedOutlet(e.target.value)}
+                      >
+                        {outlets.map((outlet) => (
+                          <option key={outlet.id} value={outlet.id}>
+                            {outlet.name} ({outlet.code})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      placeholder="Table Number (e.g., T1)"
+                      className="input-field"
+                      value={tableNumber}
+                      onChange={(e) => setTableNumber(e.target.value)}
+                      required
+                    />
+                    <input
+                      type="number"
+                      placeholder="Capacity (optional)"
+                      className="input-field"
+                      value={capacity}
+                      onChange={(e) => setCapacity(e.target.value)}
+                      min="1"
+                    />
+                    <input
+                      placeholder="Location (e.g., Floor 1)"
+                      className="input-field md:col-span-2"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      Add Table
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddModal(false);
+                        setTableNumber("");
+                        setCapacity("");
+                        setLocation("");
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

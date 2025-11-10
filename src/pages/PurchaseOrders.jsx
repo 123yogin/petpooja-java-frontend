@@ -10,6 +10,7 @@ export default function PurchaseOrders() {
   const [form, setForm] = useState({ supplierId: "", ingredientId: "", quantity: "", cost: "" });
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const loadPurchaseOrders = async () => {
     try {
@@ -54,6 +55,7 @@ export default function PurchaseOrders() {
         cost: parseFloat(form.cost),
       });
       setForm({ supplierId: "", ingredientId: "", quantity: "", cost: "" });
+      setShowModal(false);
       toast.success("Purchase order created!");
       loadPurchaseOrders();
       loadIngredients(); // Reload to show updated quantities
@@ -70,6 +72,7 @@ export default function PurchaseOrders() {
       loadIngredients(); // Reload to show updated quantities
       setEditingId(null);
       setForm({ supplierId: "", ingredientId: "", quantity: "", cost: "" });
+      setShowModal(false);
     } catch (err) {
       toast.error("Failed to update purchase order");
     }
@@ -106,93 +109,14 @@ export default function PurchaseOrders() {
           <p className="text-sm text-gray-500">Create and manage purchase orders for ingredients</p>
         </div>
 
-        {/* Add Purchase Order Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {editingId ? "Edit Purchase Order" : "Create New Purchase Order"}
-          </h2>
-          <form
-            onSubmit={
-              editingId
-                ? (e) => {
-                    e.preventDefault();
-                    const po = purchaseOrders.find((p) => p.id === editingId);
-                    updatePurchaseOrder(editingId, {
-                      supplierId: form.supplierId || po.supplier?.id,
-                      ingredientId: form.ingredientId || po.ingredient?.id,
-                      quantity: form.quantity ? parseFloat(form.quantity) : po.quantity,
-                      cost: form.cost ? parseFloat(form.cost) : po.cost,
-                    });
-                  }
-                : addPurchaseOrder
-            }
-            className="grid grid-cols-1 md:grid-cols-5 gap-3"
-          >
-            <select
-              className="input-field"
-              value={form.supplierId}
-              onChange={(e) => setForm({ ...form, supplierId: e.target.value })}
-              required={!editingId}
-            >
-              <option value="">Select Supplier</option>
-              {suppliers.map((supplier) => (
-                <option key={supplier.id} value={supplier.id}>
-                  {supplier.name}
-                </option>
-              ))}
-            </select>
-            <select
-              className="input-field"
-              value={form.ingredientId}
-              onChange={(e) => setForm({ ...form, ingredientId: e.target.value })}
-              required={!editingId}
-            >
-              <option value="">Select Ingredient</option>
-              {ingredients.map((ingredient) => (
-                <option key={ingredient.id} value={ingredient.id}>
-                  {ingredient.name}
-                </option>
-              ))}
-            </select>
-            <input
-              placeholder="Quantity"
-              type="number"
-              step="0.01"
-              className="input-field"
-              value={form.quantity}
-              onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-              required={!editingId}
-            />
-            <input
-              placeholder="Cost (₹)"
-              type="number"
-              step="0.01"
-              className="input-field"
-              value={form.cost}
-              onChange={(e) => setForm({ ...form, cost: e.target.value })}
-              required={!editingId}
-            />
-            <div className="flex gap-2">
-              <button type="submit" className="btn-primary flex-1">
-                {editingId ? "Update" : "Create"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingId(null);
-                    setForm({ supplierId: "", ingredientId: "", quantity: "", cost: "" });
-                  }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
-          <p className="text-xs text-gray-500 mt-2">
-            Note: Creating a purchase order will automatically update the ingredient quantity in inventory.
-          </p>
+        <div className="flex justify-end">
+          <button onClick={() => {
+            setEditingId(null);
+            setForm({ supplierId: "", ingredientId: "", quantity: "", cost: "" });
+            setShowModal(true);
+          }} className="btn-primary">
+            + Create New Purchase Order
+          </button>
         </div>
 
         {/* Search */}
@@ -276,6 +200,7 @@ export default function PurchaseOrders() {
                                 quantity: po.quantity?.toString() || "",
                                 cost: po.cost?.toString() || "",
                               });
+                              setShowModal(true);
                             }}
                             className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
                           >
@@ -296,6 +221,116 @@ export default function PurchaseOrders() {
             </div>
           )}
         </div>
+
+        {/* Add/Edit Purchase Order Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {editingId ? "Edit Purchase Order" : "Create New Purchase Order"}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setEditingId(null);
+                      setForm({ supplierId: "", ingredientId: "", quantity: "", cost: "" });
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form
+                  onSubmit={
+                    editingId
+                      ? (e) => {
+                          e.preventDefault();
+                          const po = purchaseOrders.find((p) => p.id === editingId);
+                          updatePurchaseOrder(editingId, {
+                            supplierId: form.supplierId || po.supplier?.id,
+                            ingredientId: form.ingredientId || po.ingredient?.id,
+                            quantity: form.quantity ? parseFloat(form.quantity) : po.quantity,
+                            cost: form.cost ? parseFloat(form.cost) : po.cost,
+                          });
+                        }
+                      : addPurchaseOrder
+                  }
+                  className="space-y-4"
+                >
+                  <select
+                    className="input-field w-full"
+                    value={form.supplierId}
+                    onChange={(e) => setForm({ ...form, supplierId: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Supplier</option>
+                    {suppliers.map((supplier) => (
+                      <option key={supplier.id} value={supplier.id}>
+                        {supplier.name}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    className="input-field w-full"
+                    value={form.ingredientId}
+                    onChange={(e) => setForm({ ...form, ingredientId: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Ingredient</option>
+                    {ingredients.map((ingredient) => (
+                      <option key={ingredient.id} value={ingredient.id}>
+                        {ingredient.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      placeholder="Quantity"
+                      type="number"
+                      step="0.01"
+                      className="input-field"
+                      value={form.quantity}
+                      onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                      required
+                    />
+                    <input
+                      placeholder="Cost (₹)"
+                      type="number"
+                      step="0.01"
+                      className="input-field"
+                      value={form.cost}
+                      onChange={(e) => setForm({ ...form, cost: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Note: Creating a purchase order will automatically update the ingredient quantity in inventory.
+                  </p>
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      {editingId ? "Update" : "Create"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowModal(false);
+                        setEditingId(null);
+                        setForm({ supplierId: "", ingredientId: "", quantity: "", cost: "" });
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

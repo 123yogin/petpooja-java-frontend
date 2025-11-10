@@ -21,6 +21,7 @@ export default function Customers() {
   });
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const loadCustomers = async () => {
     try {
@@ -64,6 +65,7 @@ export default function Customers() {
         paymentTerms: "",
         isActive: true,
       });
+      setShowModal(false);
       toast.success("Customer added!");
       loadCustomers();
     } catch (err) {
@@ -95,6 +97,7 @@ export default function Customers() {
         paymentTerms: "",
         isActive: true,
       });
+      setShowModal(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update customer");
     }
@@ -128,6 +131,7 @@ export default function Customers() {
       paymentTerms: customer.paymentTerms || "",
       isActive: customer.isActive !== undefined ? customer.isActive : true,
     });
+    setShowModal(true);
   };
 
   const cancelEdit = () => {
@@ -146,6 +150,7 @@ export default function Customers() {
       paymentTerms: "",
       isActive: true,
     });
+    setShowModal(false);
   };
 
   const filteredCustomers = customers.filter(
@@ -164,136 +169,13 @@ export default function Customers() {
           <p className="text-sm text-gray-500">Manage B2B customers and company information</p>
         </div>
 
-        {/* Add/Edit Customer Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {editingId ? "Edit Customer" : "Add New Customer"}
-          </h2>
-          <form onSubmit={editingId ? updateCustomer : addCustomer} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <input
-                type="text"
-                name="name"
-                placeholder="Company/Customer Name *"
-                className="input-field"
-                value={form.name}
-                onChange={handleFormChange}
-                required
-              />
-              <input
-                type="text"
-                name="contactPerson"
-                placeholder="Contact Person"
-                className="input-field"
-                value={form.contactPerson}
-                onChange={handleFormChange}
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                className="input-field"
-                value={form.email}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <input
-                type="text"
-                name="phone"
-                placeholder="Phone Number"
-                className="input-field"
-                value={form.phone}
-                onChange={handleFormChange}
-              />
-              <input
-                type="text"
-                name="gstin"
-                placeholder="GSTIN (15 characters)"
-                className="input-field"
-                value={form.gstin}
-                onChange={handleFormChange}
-                maxLength={15}
-              />
-              <input
-                type="text"
-                name="state"
-                placeholder="State Code (e.g., 29 for Karnataka)"
-                className="input-field"
-                value={form.state}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <input
-                type="text"
-                name="address"
-                placeholder="Address"
-                className="input-field"
-                value={form.address}
-                onChange={handleFormChange}
-              />
-              <input
-                type="text"
-                name="city"
-                placeholder="City"
-                className="input-field"
-                value={form.city}
-                onChange={handleFormChange}
-              />
-              <input
-                type="text"
-                name="pincode"
-                placeholder="Pincode"
-                className="input-field"
-                value={form.pincode}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <input
-                type="number"
-                name="creditLimit"
-                placeholder="Credit Limit (₹)"
-                step="0.01"
-                className="input-field"
-                value={form.creditLimit}
-                onChange={handleFormChange}
-              />
-              <input
-                type="text"
-                name="paymentTerms"
-                placeholder="Payment Terms (e.g., Net 30)"
-                className="input-field"
-                value={form.paymentTerms}
-                onChange={handleFormChange}
-              />
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={form.isActive}
-                  onChange={handleFormChange}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm text-gray-700">Active Customer</span>
-              </label>
-            </div>
-            <div className="flex gap-2">
-              <button type="submit" className="btn-primary flex-1">
-                {editingId ? "Update Customer" : "Add Customer"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
+        <div className="flex justify-end">
+          <button onClick={() => {
+            cancelEdit();
+            setShowModal(true);
+          }} className="btn-primary">
+            + Add New Customer
+          </button>
         </div>
 
         {/* Customers List */}
@@ -383,6 +265,152 @@ export default function Customers() {
             </div>
           )}
         </div>
+
+        {/* Add/Edit Customer Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {editingId ? "Edit Customer" : "Add New Customer"}
+                  </h2>
+                  <button
+                    onClick={cancelEdit}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form onSubmit={editingId ? updateCustomer : addCustomer} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Company/Customer Name *"
+                      className="input-field"
+                      value={form.name}
+                      onChange={handleFormChange}
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="contactPerson"
+                      placeholder="Contact Person"
+                      className="input-field"
+                      value={form.contactPerson}
+                      onChange={handleFormChange}
+                    />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email Address"
+                      className="input-field"
+                      value={form.email}
+                      onChange={handleFormChange}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      name="phone"
+                      placeholder="Phone Number"
+                      className="input-field"
+                      value={form.phone}
+                      onChange={handleFormChange}
+                    />
+                    <input
+                      type="text"
+                      name="gstin"
+                      placeholder="GSTIN (15 characters)"
+                      className="input-field"
+                      value={form.gstin}
+                      onChange={handleFormChange}
+                      maxLength={15}
+                    />
+                    <input
+                      type="text"
+                      name="state"
+                      placeholder="State Code (e.g., 29 for Karnataka)"
+                      className="input-field"
+                      value={form.state}
+                      onChange={handleFormChange}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      name="address"
+                      placeholder="Address"
+                      className="input-field"
+                      value={form.address}
+                      onChange={handleFormChange}
+                    />
+                    <input
+                      type="text"
+                      name="city"
+                      placeholder="City"
+                      className="input-field"
+                      value={form.city}
+                      onChange={handleFormChange}
+                    />
+                    <input
+                      type="text"
+                      name="pincode"
+                      placeholder="Pincode"
+                      className="input-field"
+                      value={form.pincode}
+                      onChange={handleFormChange}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      type="number"
+                      name="creditLimit"
+                      placeholder="Credit Limit (₹)"
+                      step="0.01"
+                      className="input-field"
+                      value={form.creditLimit}
+                      onChange={handleFormChange}
+                    />
+                    <input
+                      type="text"
+                      name="paymentTerms"
+                      placeholder="Payment Terms (e.g., Net 30)"
+                      className="input-field"
+                      value={form.paymentTerms}
+                      onChange={handleFormChange}
+                    />
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="isActive"
+                        checked={form.isActive}
+                        onChange={handleFormChange}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-gray-700">Active Customer</span>
+                    </label>
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      {editingId ? "Update Customer" : "Add Customer"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

@@ -22,6 +22,7 @@ export default function Tasks() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [selectedTask, setSelectedTask] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const loadTasks = async () => {
     try {
@@ -69,6 +70,7 @@ export default function Tasks() {
         status: "PENDING",
         notes: "",
       });
+      setShowModal(false);
       toast.success("Task created!");
       loadTasks();
     } catch (err) {
@@ -92,6 +94,7 @@ export default function Tasks() {
         status: "PENDING",
         notes: "",
       });
+      setShowModal(false);
     } catch (err) {
       toast.error("Failed to update task");
     }
@@ -170,133 +173,22 @@ export default function Tasks() {
           <p className="text-sm text-gray-500">Create, assign, and track operational tasks</p>
         </div>
 
-        {/* Add Task Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {editingId ? "Edit Task" : "Create New Task"}
-          </h2>
-          <form
-            onSubmit={
-              editingId
-                ? (e) => {
-                    e.preventDefault();
-                    const task = tasks.find((t) => t.id === editingId);
-                    updateTask(editingId, {
-                      title: form.title || task.title,
-                      description: form.description || task.description,
-                      assignedToId: form.assignedToId || task.assignedTo?.id,
-                      priority: form.priority || task.priority,
-                      dueDate: form.dueDate || task.dueDate,
-                      status: form.status || task.status,
-                      notes: form.notes || task.notes,
-                    });
-                  }
-                : addTask
-            }
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
-              <input
-                type="text"
-                placeholder="Task title"
-                className="input-field"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                required={!editingId}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <textarea
-                placeholder="Task description"
-                className="input-field"
-                rows="3"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-              <select
-                className="input-field"
-                value={form.priority}
-                onChange={(e) => setForm({ ...form, priority: e.target.value })}
-              >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-              <input
-                type="datetime-local"
-                className="input-field"
-                value={form.dueDate}
-                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <select
-                className="input-field"
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-              >
-                <option value="PENDING">Pending</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="CANCELLED">Cancelled</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To (Optional)</label>
-              <input
-                type="text"
-                placeholder="User email or leave empty"
-                className="input-field"
-                value={form.assignedToId}
-                onChange={(e) => setForm({ ...form, assignedToId: e.target.value })}
-              />
-              <p className="text-xs text-gray-500 mt-1">Note: User assignment by ID will be implemented</p>
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-              <textarea
-                placeholder="Additional notes or validation comments"
-                className="input-field"
-                rows="2"
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              />
-            </div>
-            <div className="md:col-span-2 flex gap-2">
-              <button type="submit" className="btn-primary flex-1">
-                {editingId ? "Update Task" : "Create Task"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingId(null);
-                    setForm({
-                      title: "",
-                      description: "",
-                      assignedToId: "",
-                      priority: "MEDIUM",
-                      dueDate: "",
-                      status: "PENDING",
-                      notes: "",
-                    });
-                  }}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
+        <div className="flex justify-end">
+          <button onClick={() => {
+            setEditingId(null);
+            setForm({
+              title: "",
+              description: "",
+              assignedToId: "",
+              priority: "MEDIUM",
+              dueDate: "",
+              status: "PENDING",
+              notes: "",
+            });
+            setShowModal(true);
+          }} className="btn-primary">
+            + Create New Task
+          </button>
         </div>
 
         {/* Filters */}
@@ -441,6 +333,7 @@ export default function Tasks() {
                             status: task.status || "PENDING",
                             notes: task.notes || "",
                           });
+                          setShowModal(true);
                         }}
                         className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
                       >
@@ -577,6 +470,163 @@ export default function Tasks() {
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add/Edit Task Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {editingId ? "Edit Task" : "Create New Task"}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setEditingId(null);
+                      setForm({
+                        title: "",
+                        description: "",
+                        assignedToId: "",
+                        priority: "MEDIUM",
+                        dueDate: "",
+                        status: "PENDING",
+                        notes: "",
+                      });
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form
+                  onSubmit={
+                    editingId
+                      ? (e) => {
+                          e.preventDefault();
+                          const task = tasks.find((t) => t.id === editingId);
+                          updateTask(editingId, {
+                            title: form.title || task.title,
+                            description: form.description || task.description,
+                            assignedToId: form.assignedToId || task.assignedTo?.id,
+                            priority: form.priority || task.priority,
+                            dueDate: form.dueDate || task.dueDate,
+                            status: form.status || task.status,
+                            notes: form.notes || task.notes,
+                          });
+                        }
+                      : addTask
+                  }
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                    <input
+                      type="text"
+                      placeholder="Task title"
+                      className="input-field w-full"
+                      value={form.title}
+                      onChange={(e) => setForm({ ...form, title: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea
+                      placeholder="Task description"
+                      className="input-field w-full"
+                      rows="3"
+                      value={form.description}
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                      <select
+                        className="input-field w-full"
+                        value={form.priority}
+                        onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                      >
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                      <input
+                        type="datetime-local"
+                        className="input-field w-full"
+                        value={form.dueDate}
+                        onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                      <select
+                        className="input-field w-full"
+                        value={form.status}
+                        onChange={(e) => setForm({ ...form, status: e.target.value })}
+                      >
+                        <option value="PENDING">Pending</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To (Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="User email or leave empty"
+                        className="input-field w-full"
+                        value={form.assignedToId}
+                        onChange={(e) => setForm({ ...form, assignedToId: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea
+                      placeholder="Additional notes or validation comments"
+                      className="input-field w-full"
+                      rows="2"
+                      value={form.notes}
+                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      {editingId ? "Update Task" : "Create Task"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowModal(false);
+                        setEditingId(null);
+                        setForm({
+                          title: "",
+                          description: "",
+                          assignedToId: "",
+                          priority: "MEDIUM",
+                          dueDate: "",
+                          status: "PENDING",
+                          notes: "",
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

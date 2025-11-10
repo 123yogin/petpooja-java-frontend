@@ -18,6 +18,7 @@ export default function Attendance() {
     remarks: "",
   });
   const [editingId, setEditingId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   const loadAttendance = async () => {
     try {
@@ -88,6 +89,7 @@ export default function Attendance() {
         shift: "",
         remarks: "",
       });
+      setShowModal(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to add attendance");
     }
@@ -114,6 +116,7 @@ export default function Attendance() {
         shift: "",
         remarks: "",
       });
+      setShowModal(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update attendance");
     }
@@ -130,6 +133,7 @@ export default function Attendance() {
       shift: att.shift || "",
       remarks: att.remarks || "",
     });
+    setShowModal(true);
   };
 
   const cancelEdit = () => {
@@ -143,6 +147,7 @@ export default function Attendance() {
       shift: "",
       remarks: "",
     });
+    setShowModal(false);
   };
 
   const filteredAttendance = attendance.filter((att) => {
@@ -200,97 +205,13 @@ export default function Attendance() {
           </div>
         </div>
 
-        {/* Add/Edit Attendance Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {editingId ? "Edit Attendance" : "Add Attendance Record"}
-          </h2>
-          <form onSubmit={editingId ? updateAttendance : addAttendance} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <select
-                name="employeeId"
-                className="input-field"
-                value={form.employeeId}
-                onChange={handleFormChange}
-                required
-              >
-                <option value="">Select Employee</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name} ({emp.employeeId})
-                  </option>
-                ))}
-              </select>
-              <input
-                type="date"
-                name="date"
-                className="input-field"
-                value={form.date}
-                onChange={handleFormChange}
-                required
-              />
-              <input
-                type="time"
-                name="checkIn"
-                className="input-field"
-                value={form.checkIn}
-                onChange={handleFormChange}
-              />
-              <input
-                type="time"
-                name="checkOut"
-                className="input-field"
-                value={form.checkOut}
-                onChange={handleFormChange}
-              />
-              <select
-                name="status"
-                className="input-field"
-                value={form.status}
-                onChange={handleFormChange}
-                required
-              >
-                <option value="PRESENT">Present</option>
-                <option value="ABSENT">Absent</option>
-                <option value="HALF_DAY">Half Day</option>
-                <option value="LEAVE">Leave</option>
-                <option value="HOLIDAY">Holiday</option>
-              </select>
-              <select
-                name="shift"
-                className="input-field"
-                value={form.shift}
-                onChange={handleFormChange}
-              >
-                <option value="">Select Shift</option>
-                <option value="MORNING">Morning</option>
-                <option value="EVENING">Evening</option>
-                <option value="NIGHT">Night</option>
-              </select>
-              <textarea
-                name="remarks"
-                placeholder="Remarks (optional)"
-                className="input-field w-full"
-                rows="2"
-                value={form.remarks}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="flex gap-2">
-              <button type="submit" className="btn-primary flex-1">
-                {editingId ? "Update Attendance" : "Add Attendance"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
+        <div className="flex justify-end">
+          <button onClick={() => {
+            cancelEdit();
+            setShowModal(true);
+          }} className="btn-primary">
+            + Add Attendance Record
+          </button>
         </div>
 
         {/* Filters */}
@@ -382,6 +303,113 @@ export default function Attendance() {
             </div>
           )}
         </div>
+
+        {/* Add/Edit Attendance Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {editingId ? "Edit Attendance" : "Add Attendance Record"}
+                  </h2>
+                  <button
+                    onClick={cancelEdit}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form onSubmit={editingId ? updateAttendance : addAttendance} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <select
+                      name="employeeId"
+                      className="input-field"
+                      value={form.employeeId}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="">Select Employee</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.employeeId})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="date"
+                      name="date"
+                      className="input-field"
+                      value={form.date}
+                      onChange={handleFormChange}
+                      required
+                    />
+                    <input
+                      type="time"
+                      name="checkIn"
+                      className="input-field"
+                      value={form.checkIn}
+                      onChange={handleFormChange}
+                    />
+                    <input
+                      type="time"
+                      name="checkOut"
+                      className="input-field"
+                      value={form.checkOut}
+                      onChange={handleFormChange}
+                    />
+                    <select
+                      name="status"
+                      className="input-field"
+                      value={form.status}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="PRESENT">Present</option>
+                      <option value="ABSENT">Absent</option>
+                      <option value="HALF_DAY">Half Day</option>
+                      <option value="LEAVE">Leave</option>
+                      <option value="HOLIDAY">Holiday</option>
+                    </select>
+                    <select
+                      name="shift"
+                      className="input-field"
+                      value={form.shift}
+                      onChange={handleFormChange}
+                    >
+                      <option value="">Select Shift</option>
+                      <option value="MORNING">Morning</option>
+                      <option value="EVENING">Evening</option>
+                      <option value="NIGHT">Night</option>
+                    </select>
+                    <textarea
+                      name="remarks"
+                      placeholder="Remarks (optional)"
+                      className="input-field w-full md:col-span-2"
+                      rows="2"
+                      value={form.remarks}
+                      onChange={handleFormChange}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      {editingId ? "Update Attendance" : "Add Attendance"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

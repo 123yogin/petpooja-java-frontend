@@ -89,7 +89,7 @@ export default function Register() {
           // User auto-confirmed, can login now
           setMessage(data.message || "User registered successfully! You can now login.");
           setTimeout(() => {
-            navigate("/");
+            navigate("/login");
           }, 2000);
         }
       } else {
@@ -125,7 +125,7 @@ export default function Register() {
         setMessage(data.message || "Account confirmed successfully! Redirecting to login...");
         // Redirect to login page after confirmation
         setTimeout(() => {
-          navigate("/");
+          navigate("/login");
         }, 2000);
       } else {
         setError(data.error || "Confirmation failed. Please try again.");
@@ -353,7 +353,7 @@ export default function Register() {
           
           <div className="mt-6 text-center text-sm">
             <span className="text-gray-500">Already have an account? </span>
-            <Link to="/" className="text-gray-900 hover:underline font-medium">
+            <Link to="/login" className="text-gray-900 hover:underline font-medium">
               Sign In
             </Link>
           </div>

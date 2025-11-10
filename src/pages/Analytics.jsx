@@ -78,7 +78,11 @@ export default function Analytics() {
         }
         setOrders(filteredOrders);
       } catch (err) {
-        toast.error("Failed to load analytics");
+        const errorMessage = err.response?.status === 403 
+          ? "You don't have permission to view analytics"
+          : err.message || "Failed to load analytics";
+        toast.error(errorMessage);
+        console.error("Analytics load error:", err);
       }
     };
     loadData();

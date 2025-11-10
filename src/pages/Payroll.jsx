@@ -13,6 +13,7 @@ export default function Payroll() {
   });
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showModal, setShowModal] = useState(false);
 
   const loadPayrolls = async () => {
     try {
@@ -53,6 +54,7 @@ export default function Payroll() {
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
       });
+      setShowModal(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to generate payroll");
     }
@@ -90,56 +92,17 @@ export default function Payroll() {
           <p className="text-sm text-gray-500">Generate and manage employee payroll</p>
         </div>
 
-        {/* Generate Payroll Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Generate Payroll</h2>
-          <form onSubmit={generatePayroll} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <select
-                name="employeeId"
-                className="input-field"
-                value={form.employeeId}
-                onChange={handleFormChange}
-                required
-              >
-                <option value="">Select Employee</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name} ({emp.employeeId})
-                  </option>
-                ))}
-              </select>
-              <select
-                name="month"
-                className="input-field"
-                value={form.month}
-                onChange={handleFormChange}
-                required
-              >
-                {months.map((month, index) => (
-                  <option key={index} value={index + 1}>
-                    {month}
-                  </option>
-                ))}
-              </select>
-              <select
-                name="year"
-                className="input-field"
-                value={form.year}
-                onChange={handleFormChange}
-                required
-              >
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button type="submit" className="btn-primary">
-              Generate Payroll
-            </button>
-          </form>
+        <div className="flex justify-end">
+          <button onClick={() => {
+            setForm({
+              employeeId: "",
+              month: new Date().getMonth() + 1,
+              year: new Date().getFullYear(),
+            });
+            setShowModal(true);
+          }} className="btn-primary">
+            + Generate Payroll
+          </button>
         </div>
 
         {/* Filters */}
@@ -331,6 +294,97 @@ export default function Payroll() {
             </div>
           )}
         </div>
+
+        {/* Generate Payroll Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Generate Payroll</h2>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setForm({
+                        employeeId: "",
+                        month: new Date().getMonth() + 1,
+                        year: new Date().getFullYear(),
+                      });
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form onSubmit={generatePayroll} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <select
+                      name="employeeId"
+                      className="input-field"
+                      value={form.employeeId}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="">Select Employee</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name} ({emp.employeeId})
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="month"
+                      className="input-field"
+                      value={form.month}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      {months.map((month, index) => (
+                        <option key={index} value={index + 1}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="year"
+                      className="input-field"
+                      value={form.year}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      {years.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      Generate Payroll
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowModal(false);
+                        setForm({
+                          employeeId: "",
+                          month: new Date().getMonth() + 1,
+                          year: new Date().getFullYear(),
+                        });
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

@@ -37,7 +37,7 @@ export default function Sidebar() {
     <div className="w-64 bg-white border-r border-gray-100 h-screen fixed left-0 top-0 flex flex-col z-30">
       {/* Header */}
       <div className="p-6 border-b border-gray-100 flex-shrink-0">
-        <h1 className="text-xl font-semibold text-gray-900">Petpooja</h1>
+        <h1 className="text-xl font-semibold text-gray-900">RestroSuite</h1>
         <p className="text-xs text-gray-500 mt-0.5">Restaurant POS</p>
       </div>
       

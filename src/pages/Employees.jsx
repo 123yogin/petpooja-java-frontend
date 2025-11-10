@@ -31,6 +31,7 @@ export default function Employees() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterActive, setFilterActive] = useState("all");
   const [filterDepartment, setFilterDepartment] = useState("all");
+  const [showModal, setShowModal] = useState(false);
 
   const loadEmployees = async () => {
     try {
@@ -87,6 +88,7 @@ export default function Employees() {
         emergencyPhone: "",
         isActive: true,
       });
+      setShowModal(false);
       toast.success("Employee added!");
       loadEmployees();
     } catch (err) {
@@ -130,6 +132,7 @@ export default function Employees() {
         emergencyPhone: "",
         isActive: true,
       });
+      setShowModal(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update employee");
     }
@@ -171,6 +174,7 @@ export default function Employees() {
       emergencyPhone: employee.emergencyPhone || "",
       isActive: employee.isActive !== undefined ? employee.isActive : true,
     });
+    setShowModal(true);
   };
 
   const cancelEdit = () => {
@@ -197,6 +201,7 @@ export default function Employees() {
       emergencyPhone: "",
       isActive: true,
     });
+    setShowModal(false);
   };
 
   const filteredEmployees = employees.filter((emp) => {
@@ -227,12 +232,34 @@ export default function Employees() {
           <p className="text-sm text-gray-500">Manage your restaurant staff and employees</p>
         </div>
 
-        {/* Add/Edit Employee Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {editingId ? "Edit Employee" : "Add New Employee"}
-          </h2>
-          <form onSubmit={editingId ? updateEmployee : addEmployee} className="space-y-4">
+        <div className="flex justify-end">
+          <button onClick={() => {
+            cancelEdit();
+            setShowModal(true);
+          }} className="btn-primary">
+            + Add New Employee
+          </button>
+        </div>
+
+        {/* Add/Edit Employee Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {editingId ? "Edit Employee" : "Add New Employee"}
+                  </h2>
+                  <button
+                    onClick={cancelEdit}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form onSubmit={editingId ? updateEmployee : addEmployee} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <input
                 type="text"
@@ -414,22 +441,23 @@ export default function Employees() {
                 <span className="text-sm text-gray-700">Is Active</span>
               </label>
             </div>
-            <div className="flex gap-2">
-              <button type="submit" className="btn-primary flex-1">
-                {editingId ? "Update Employee" : "Add Employee"}
-              </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                >
-                  Cancel
-                </button>
-              )}
+                  <div className="flex gap-2 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      {editingId ? "Update Employee" : "Add Employee"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </form>
-        </div>
+          </div>
+        )}
 
         {/* Employees List */}
         <div className="card">

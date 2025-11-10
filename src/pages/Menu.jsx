@@ -20,6 +20,7 @@ export default function Menu() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [categories, setCategories] = useState(["Appetizer", "Main Course", "Dessert", "Beverage", "Soup", "Salad"]);
   const [newCategory, setNewCategory] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const loadItems = async () => {
     try {
@@ -136,6 +137,7 @@ export default function Menu() {
         taxRate: form.taxRate ? parseFloat(form.taxRate) : 5.0,
       });
       setForm({ name: "", category: "", price: "", description: "", available: true, hsnCode: "", taxRate: "" });
+      setShowModal(false);
       toast.success("Menu item added!");
       loadItems();
     } catch (err) {
@@ -155,6 +157,7 @@ export default function Menu() {
       });
       setForm({ name: "", category: "", price: "", description: "", available: true, hsnCode: "", taxRate: "" });
       setEditingId(null);
+      setShowModal(false);
       toast.success("Menu item updated!");
       loadItems();
     } catch (err) {
@@ -173,11 +176,19 @@ export default function Menu() {
       hsnCode: item.hsnCode || "",
       taxRate: item.taxRate?.toString() || "5.0",
     });
+    setShowModal(true);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setForm({ name: "", category: "", price: "", description: "", available: true, hsnCode: "", taxRate: "" });
+    setShowModal(false);
+  };
+
+  const openAddModal = () => {
+    setEditingId(null);
+    setForm({ name: "", category: "", price: "", description: "", available: true, hsnCode: "", taxRate: "" });
+    setShowModal(true);
   };
 
   const deleteItem = async (id) => {
@@ -273,95 +284,11 @@ export default function Menu() {
           </div>
         </div>
 
-        {/* Add/Edit Form */}
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            {editingId ? "Edit Menu Item" : "Add New Menu Item"}
-          </h2>
-          <form onSubmit={editingId ? updateItem : addItem} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <input
-                placeholder="Item Name"
-                className="input-field"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-              />
-              <select
-                className="input-field"
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                required
-              >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-              <input
-                placeholder="Price"
-                type="number"
-                step="0.01"
-                min="0"
-                className="input-field"
-                value={form.price}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
-                required
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input
-                placeholder="HSN Code (e.g., 996331)"
-                className="input-field"
-                value={form.hsnCode}
-                onChange={(e) => setForm({ ...form, hsnCode: e.target.value })}
-              />
-              <input
-                placeholder="Tax Rate % (default: 5.0)"
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
-                className="input-field"
-                value={form.taxRate}
-                onChange={(e) => setForm({ ...form, taxRate: e.target.value })}
-              />
-            </div>
-            <textarea
-              placeholder="Description (optional)"
-              className="input-field w-full"
-              rows="3"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.available}
-                  onChange={(e) => setForm({ ...form, available: e.target.checked })}
-                  className="w-4 h-4"
-                />
-                <span className="text-sm text-gray-700">Available</span>
-              </label>
-              <div className="flex gap-2 ml-auto">
-                <button type="submit" className="btn-primary">
-                  {editingId ? "Update Item" : "Add Item"}
-                </button>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={cancelEdit}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                )}
-              </div>
-            </div>
-          </form>
+        {/* Add Button */}
+        <div className="flex justify-end">
+          <button onClick={openAddModal} className="btn-primary">
+            + Add New Menu Item
+          </button>
         </div>
 
         {/* Search and Filters */}
@@ -665,6 +592,111 @@ export default function Menu() {
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add/Edit Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {editingId ? "Edit Menu Item" : "Add New Menu Item"}
+                  </h2>
+                  <button
+                    onClick={cancelEdit}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <form onSubmit={editingId ? updateItem : addItem} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      placeholder="Item Name"
+                      className="input-field"
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      required
+                    />
+                    <select
+                      className="input-field"
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      placeholder="Price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="input-field"
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      placeholder="HSN Code (e.g., 996331)"
+                      className="input-field"
+                      value={form.hsnCode}
+                      onChange={(e) => setForm({ ...form, hsnCode: e.target.value })}
+                    />
+                    <input
+                      placeholder="Tax Rate % (default: 5.0)"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      className="input-field"
+                      value={form.taxRate}
+                      onChange={(e) => setForm({ ...form, taxRate: e.target.value })}
+                    />
+                  </div>
+                  <textarea
+                    placeholder="Description (optional)"
+                    className="input-field w-full"
+                    rows="3"
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.available}
+                        onChange={(e) => setForm({ ...form, available: e.target.checked })}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-gray-700">Available</span>
+                    </label>
+                    <div className="flex gap-2 ml-auto">
+                      <button type="submit" className="btn-primary">
+                        {editingId ? "Update Item" : "Add Item"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEdit}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

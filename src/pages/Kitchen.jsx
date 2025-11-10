@@ -15,7 +15,11 @@ export default function Kitchen() {
       const res = await API.get("/orders");
       setOrders(res.data);
     } catch (err) {
-      toast.error("Failed to load orders");
+      const errorMessage = err.response?.status === 403 
+        ? "You don't have permission to view orders"
+        : err.message || "Failed to load orders";
+      toast.error(errorMessage);
+      console.error("Kitchen load error:", err);
     }
   };
 

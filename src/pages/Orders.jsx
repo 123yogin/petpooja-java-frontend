@@ -29,7 +29,11 @@ export default function Orders() {
       const res = await API.get("/menu");
       setMenu(res.data);
     } catch (err) {
-      toast.error("Failed to load menu");
+      const errorMessage = err.response?.status === 403 
+        ? "You don't have permission to view menu"
+        : err.message || "Failed to load menu";
+      toast.error(errorMessage);
+      console.error("Menu load error:", err);
     }
   };
 
@@ -38,7 +42,11 @@ export default function Orders() {
       const res = await API.get("/tables");
       setTables(res.data);
     } catch (err) {
-      toast.error("Failed to load tables");
+      const errorMessage = err.response?.status === 403 
+        ? "You don't have permission to view tables"
+        : err.message || "Failed to load tables";
+      toast.error(errorMessage);
+      console.error("Tables load error:", err);
     }
   };
 
@@ -61,7 +69,11 @@ export default function Orders() {
       setOrders(res.data);
       setFilteredOrders(res.data);
     } catch (err) {
-      toast.error("Failed to load orders");
+      const errorMessage = err.response?.status === 403 
+        ? "You don't have permission to view orders"
+        : err.message || "Failed to load orders";
+      toast.error(errorMessage);
+      console.error("Orders load error:", err);
     }
   };
 
