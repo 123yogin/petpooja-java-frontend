@@ -17,26 +17,48 @@ export default function ModifierSelector({ menuItemId, onModifiersSelected, isOp
     setLoading(true);
     try {
       const res = await API.get(`/modifiers/menu-items/${menuItemId}/modifier-groups`);
-      // Load modifier groups and their modifiers
-      const groupsWithModifiers = await Promise.all(
-        res.data.map(async (link) => {
-          try {
-            const modifiersRes = await API.get(`/modifiers/groups/${link.modifierGroup.id}/modifiers`);
-            return {
-              ...link.modifierGroup,
-              modifiers: modifiersRes.data
-            };
-          } catch (err) {
-            return {
-              ...link.modifierGroup,
-              modifiers: []
-            };
-          }
-        })
-      );
+      
+      // The API now returns DTOs with modifiers already included, no circular references
+      // Handle case where response might be a string (JSON) or already parsed
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (typeof res.data === 'string') {
+        // If it's a string, parse it as JSON
+        try {
+          data = JSON.parse(res.data);
+        } catch (e) {
+          console.error("Failed to parse JSON response:", e);
+          data = [];
+        }
+      } else if (res.data && typeof res.data === 'object') {
+        // If it's an object, try to extract an array from it
+        data = res.data.data || res.data.items || [];
+      }
+      
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        data = [];
+      }
+      
+      const groupsWithModifiers = data.map((link) => {
+        const group = link.modifierGroup || link;
+        return {
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          isRequired: group.isRequired,
+          allowMultiple: group.allowMultiple,
+          minSelection: group.minSelection,
+          maxSelection: group.maxSelection,
+          isActive: group.isActive,
+          modifiers: group.modifiers || []
+        };
+      });
       setModifierGroups(groupsWithModifiers);
       setSelectedModifiers([]);
     } catch (err) {
+      console.error("Error loading modifier groups:", err);
       // If no modifier groups found, that's okay - item just has no modifiers
       setModifierGroups([]);
       setSelectedModifiers([]);

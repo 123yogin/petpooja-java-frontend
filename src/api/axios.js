@@ -10,9 +10,24 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor to handle errors gracefully
+// Response interceptor to handle errors gracefully and ensure JSON parsing
 API.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Ensure response.data is properly parsed
+    // Sometimes Spring Boot returns JSON as a string, so we need to parse it
+    if (typeof response.data === 'string') {
+      const trimmed = response.data.trim();
+      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        try {
+          response.data = JSON.parse(response.data);
+        } catch (e) {
+          // If parsing fails, keep the original data
+          console.warn("Failed to parse response data as JSON:", e);
+        }
+      }
+    }
+    return response;
+  },
   (error) => {
     // Handle 403 Forbidden (access denied) errors
     if (error.response?.status === 403) {

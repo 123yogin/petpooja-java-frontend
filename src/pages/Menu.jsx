@@ -66,36 +66,43 @@ export default function Menu() {
   const loadModifierGroups = async () => {
     try {
       const res = await API.get("/modifiers/groups");
-      const groups = res.data;
-      // Load modifiers for each group
-      const groupsWithModifiers = await Promise.all(
-        groups.map(async (group) => {
-          try {
-            const modifiersRes = await API.get(`/modifiers/groups/${group.id}/modifiers`);
-            return {
-              ...group,
-              modifiers: modifiersRes.data
-            };
-          } catch (err) {
-            return {
-              ...group,
-              modifiers: []
-            };
-          }
-        })
-      );
-      setModifierGroups(groupsWithModifiers);
+      // Handle response parsing - ensure it's an array
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (typeof res.data === 'string') {
+        try {
+          data = JSON.parse(res.data);
+        } catch (e) {
+          console.error("Failed to parse JSON response:", e);
+          data = [];
+        }
+      }
+      setModifierGroups(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Failed to load modifier groups");
+      console.error("Failed to load modifier groups:", err);
+      setModifierGroups([]);
     }
   };
 
   const loadModifiersForGroup = async (groupId) => {
     try {
       const res = await API.get(`/modifiers/groups/${groupId}/modifiers`);
-      return res.data;
+      // Handle response parsing
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (typeof res.data === 'string') {
+        try {
+          data = JSON.parse(res.data);
+        } catch (e) {
+          console.error("Failed to parse JSON response:", e);
+          data = [];
+        }
+      }
+      return Array.isArray(data) ? data : [];
     } catch (err) {
-      console.error("Failed to load modifiers");
+      console.error("Failed to load modifiers:", err);
       return [];
     }
   };
@@ -103,12 +110,28 @@ export default function Menu() {
   const loadModifierGroupsForMenuItem = async (menuItemId) => {
     try {
       const res = await API.get(`/modifiers/menu-items/${menuItemId}/modifier-groups`);
+      // Handle response parsing - ensure it's an array
+      let data = [];
+      if (Array.isArray(res.data)) {
+        data = res.data;
+      } else if (typeof res.data === 'string') {
+        try {
+          data = JSON.parse(res.data);
+        } catch (e) {
+          console.error("Failed to parse JSON response:", e);
+          data = [];
+        }
+      }
       setMenuItemModifierGroups(prev => ({
         ...prev,
-        [menuItemId]: res.data
+        [menuItemId]: Array.isArray(data) ? data : []
       }));
     } catch (err) {
-      console.error("Failed to load modifier groups for menu item");
+      console.error("Failed to load modifier groups for menu item:", err);
+      setMenuItemModifierGroups(prev => ({
+        ...prev,
+        [menuItemId]: []
+      }));
     }
   };
 
@@ -1050,19 +1073,21 @@ export default function Menu() {
                   {/* Linked Modifier Groups */}
                   <div className="pt-4 border-t">
                     <h3 className="text-base font-medium text-gray-900 mb-3">Linked Modifier Groups</h3>
-                    {menuItemModifierGroups[selectedItem.id] && menuItemModifierGroups[selectedItem.id].length > 0 ? (
+                    {menuItemModifierGroups[selectedItem.id] && Array.isArray(menuItemModifierGroups[selectedItem.id]) && menuItemModifierGroups[selectedItem.id].length > 0 ? (
                       <div className="space-y-2">
-                        {menuItemModifierGroups[selectedItem.id].map((link) => (
-                          <div key={link.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                            <span className="text-sm text-gray-900">{link.modifierGroup.name}</span>
-                            <button
-                              onClick={() => unlinkModifierGroupFromMenuItem(selectedItem.id, link.modifierGroup.id)}
-                              className="text-xs text-red-600 hover:text-red-800"
-                            >
-                              Unlink
-                            </button>
-                          </div>
-                        ))}
+                        {menuItemModifierGroups[selectedItem.id]
+                          .filter(link => link && link.modifierGroup) // Filter out invalid links
+                          .map((link) => (
+                            <div key={link.id || link.modifierGroup?.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                              <span className="text-sm text-gray-900">{link.modifierGroup?.name || 'Unnamed Group'}</span>
+                              <button
+                                onClick={() => unlinkModifierGroupFromMenuItem(selectedItem.id, link.modifierGroup.id)}
+                                className="text-xs text-red-600 hover:text-red-800"
+                              >
+                                Unlink
+                              </button>
+                            </div>
+                          ))}
                       </div>
                     ) : (
                       <p className="text-sm text-gray-500">No modifier groups linked</p>
@@ -1322,51 +1347,57 @@ export default function Menu() {
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">Available Modifier Groups</h4>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {modifierGroups
-                        .filter(group => {
-                          const linked = menuItemModifierGroups[linkingMenuItem.id] || [];
-                          return !linked.some(l => l.modifierGroup.id === group.id);
-                        })
-                        .map((group) => (
-                          <div key={group.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <div>
-                              <span className="font-medium text-gray-900">{group.name}</span>
-                              {group.description && (
-                                <p className="text-xs text-gray-500 mt-1">{group.description}</p>
-                              )}
+                      {modifierGroups && Array.isArray(modifierGroups) && modifierGroups.length > 0 ? (
+                        modifierGroups
+                          .filter(group => {
+                            const linked = menuItemModifierGroups[linkingMenuItem.id] || [];
+                            return !linked.some(l => l && l.modifierGroup && l.modifierGroup.id === group.id);
+                          })
+                          .map((group) => (
+                            <div key={group.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                              <div>
+                                <span className="font-medium text-gray-900">{group.name || 'Unnamed Group'}</span>
+                                {group.description && (
+                                  <p className="text-xs text-gray-500 mt-1">{group.description}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => linkModifierGroupToMenuItem(linkingMenuItem.id, group.id)}
+                                className="px-3 py-1 bg-black text-white rounded hover:bg-gray-800 text-sm"
+                              >
+                                Link
+                              </button>
                             </div>
-                            <button
-                              onClick={() => linkModifierGroupToMenuItem(linkingMenuItem.id, group.id)}
-                              className="px-3 py-1 bg-black text-white rounded hover:bg-gray-800 text-sm"
-                            >
-                              Link
-                            </button>
-                          </div>
-                        ))}
-                      {modifierGroups.filter(group => {
+                          ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">No modifier groups available</p>
+                      )}
+                      {modifierGroups && Array.isArray(modifierGroups) && modifierGroups.filter(group => {
                         const linked = menuItemModifierGroups[linkingMenuItem.id] || [];
-                        return !linked.some(l => l.modifierGroup.id === group.id);
-                      }).length === 0 && (
+                        return !linked.some(l => l && l.modifierGroup && l.modifierGroup.id === group.id);
+                      }).length === 0 && modifierGroups.length > 0 && (
                         <p className="text-sm text-gray-500 text-center py-4">All modifier groups are linked</p>
                       )}
                     </div>
                   </div>
 
-                  {menuItemModifierGroups[linkingMenuItem.id] && menuItemModifierGroups[linkingMenuItem.id].length > 0 && (
+                  {menuItemModifierGroups[linkingMenuItem.id] && Array.isArray(menuItemModifierGroups[linkingMenuItem.id]) && menuItemModifierGroups[linkingMenuItem.id].length > 0 && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Linked Modifier Groups</h4>
                       <div className="space-y-2">
-                        {menuItemModifierGroups[linkingMenuItem.id].map((link) => (
-                          <div key={link.id} className="flex justify-between items-center p-3 bg-gray-100 rounded-lg">
-                            <span className="font-medium text-gray-900">{link.modifierGroup.name}</span>
-                            <button
-                              onClick={() => unlinkModifierGroupFromMenuItem(linkingMenuItem.id, link.modifierGroup.id)}
-                              className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
-                            >
-                              Unlink
-                            </button>
-                          </div>
-                        ))}
+                        {menuItemModifierGroups[linkingMenuItem.id]
+                          .filter(link => link && link.modifierGroup) // Filter out invalid links
+                          .map((link) => (
+                            <div key={link.id || link.modifierGroup?.id} className="flex justify-between items-center p-3 bg-gray-100 rounded-lg">
+                              <span className="font-medium text-gray-900">{link.modifierGroup?.name || 'Unnamed Group'}</span>
+                              <button
+                                onClick={() => unlinkModifierGroupFromMenuItem(linkingMenuItem.id, link.modifierGroup.id)}
+                                className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+                              >
+                                Unlink
+                              </button>
+                            </div>
+                          ))}
                       </div>
                     </div>
                   )}
