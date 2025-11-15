@@ -344,8 +344,8 @@ export default function Orders() {
           </div>
         </div>
         ) : (
-          <div className="card bg-blue-50 border-blue-200">
-            <p className="text-sm text-blue-800">
+          <div className="card bg-gray-100 border-gray-200">
+            <p className="text-sm text-gray-800">
               You can view orders but cannot create new orders. Contact an administrator if you need to create orders.
             </p>
           </div>
@@ -406,9 +406,9 @@ export default function Orders() {
                       <p className="font-mono text-xs text-gray-700">{o.id.substring(0, 8)}...</p>
                     </div>
                     <span className={`badge ${
-                      o.status === "COMPLETED" ? "bg-green-100 text-green-800" :
-                      o.status === "IN_PROGRESS" ? "bg-blue-100 text-blue-800" :
-                      o.status === "CREATED" ? "bg-yellow-100 text-yellow-800" :
+                      o.status === "COMPLETED" ? "bg-gray-100 text-gray-800" :
+                      o.status === "IN_PROGRESS" ? "bg-gray-200 text-gray-900" :
+                      o.status === "CREATED" ? "bg-gray-200 text-gray-800" :
                       "bg-gray-100 text-gray-700"
                     }`}>
                       {o.status}
@@ -434,7 +434,7 @@ export default function Orders() {
                     <div className="flex gap-2 mt-3 flex-wrap">
                       <button
                         onClick={() => setSelectedOrder(o)}
-                        className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors min-w-[100px]"
+                        className="flex-1 px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors min-w-[100px]"
                       >
                         View Details
                       </button>
@@ -444,7 +444,7 @@ export default function Orders() {
                             const nextStatus = o.status === "CREATED" ? "IN_PROGRESS" : "COMPLETED";
                             updateOrderStatus(o.id, nextStatus);
                           }}
-                          className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm font-medium transition-colors"
+                          className="px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                         >
                           {o.status === "CREATED" ? "Start" : "Complete"}
                         </button>
@@ -459,7 +459,7 @@ export default function Orders() {
                               toast.error(err.response?.data?.message || "Failed to generate bill");
                             }
                           }}
-                          className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+                          className="px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                         >
                           Bill
                         </button>
@@ -498,9 +498,9 @@ export default function Orders() {
                     <div>
                       <p className="text-sm text-gray-500 mb-1">Status</p>
                       <span className={`badge ${
-                        selectedOrder.status === "COMPLETED" ? "bg-green-100 text-green-800" :
-                        selectedOrder.status === "IN_PROGRESS" ? "bg-blue-100 text-blue-800" :
-                        selectedOrder.status === "CREATED" ? "bg-yellow-100 text-yellow-800" :
+                        selectedOrder.status === "COMPLETED" ? "bg-gray-100 text-gray-800" :
+                        selectedOrder.status === "IN_PROGRESS" ? "bg-gray-200 text-gray-900" :
+                        selectedOrder.status === "CREATED" ? "bg-gray-200 text-gray-800" :
                         "bg-gray-100 text-gray-700"
                       }`}>
                         {selectedOrder.status}
@@ -560,7 +560,7 @@ export default function Orders() {
                           updateOrderStatus(selectedOrder.id, nextStatus);
                           setSelectedOrder(null);
                         }}
-                        className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium"
+                        className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                       >
                         {selectedOrder.status === "CREATED" ? "Start Order" : "Complete Order"}
                       </button>
@@ -576,7 +576,7 @@ export default function Orders() {
                             toast.error(err.response?.data?.message || "Failed to generate bill");
                           }
                         }}
-                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                        className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                       >
                         Generate Bill
                       </button>

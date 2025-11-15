@@ -165,9 +165,9 @@ export default function Payroll() {
                         ₹{payroll.netSalary?.toFixed(2) || "0.00"}
                       </p>
                       <span className={`badge ${
-                        payroll.status === "PAID" ? "bg-green-100 text-green-800" :
-                        payroll.status === "PENDING" ? "bg-yellow-100 text-yellow-800" :
-                        "bg-red-100 text-red-800"
+                        payroll.status === "PAID" ? "bg-gray-100 text-gray-800" :
+                        payroll.status === "PENDING" ? "bg-gray-200 text-gray-800" :
+                        "bg-gray-200 text-gray-900"
                       }`}>
                         {payroll.status}
                       </span>

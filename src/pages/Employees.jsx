@@ -523,7 +523,7 @@ export default function Employees() {
                       <td className="p-3">
                         <span
                           className={`badge ${
-                            employee.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            employee.isActive ? "bg-gray-100 text-gray-800" : "bg-gray-200 text-gray-900"
                           }`}
                         >
                           {employee.isActive ? "Active" : "Inactive"}
@@ -532,13 +532,13 @@ export default function Employees() {
                       <td className="p-3">
                         <button
                           onClick={() => startEdit(employee)}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium mr-3 transition-colors"
+                          className="text-black hover:text-gray-900 text-sm font-medium mr-3 transition-colors"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => deleteEmployee(employee.id)}
-                          className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+                          className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-colors"
                         >
                           Delete
                         </button>

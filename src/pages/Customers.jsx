@@ -237,7 +237,7 @@ export default function Customers() {
                         <span
                           className={`badge ${
                             customer.isActive
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-gray-100 text-gray-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
@@ -247,13 +247,13 @@ export default function Customers() {
                       <td className="p-3">
                         <button
                           onClick={() => startEdit(customer)}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium mr-3 transition-colors"
+                          className="text-black hover:text-gray-900 text-sm font-medium mr-3 transition-colors"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => deleteCustomer(customer.id)}
-                          className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+                          className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-colors"
                         >
                           Delete
                         </button>

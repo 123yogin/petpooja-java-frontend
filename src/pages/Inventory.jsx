@@ -82,11 +82,11 @@ export default function Inventory() {
 
   const getStockStatus = (ingredient) => {
     if (ingredient.quantity <= ingredient.threshold) {
-      return { label: "Low Stock", color: "bg-red-100 text-red-800" };
+      return { label: "Low Stock", color: "bg-gray-200 text-gray-900" };
     } else if (ingredient.quantity <= ingredient.threshold * 1.5) {
-      return { label: "Warning", color: "bg-yellow-100 text-yellow-800" };
+      return { label: "Warning", color: "bg-gray-200 text-gray-800" };
     }
-    return { label: "In Stock", color: "bg-green-100 text-green-800" };
+    return { label: "In Stock", color: "bg-gray-100 text-gray-800" };
   };
 
   return (
@@ -196,7 +196,7 @@ export default function Inventory() {
                               });
                               setShowModal(true);
                             }}
-                            className="text-blue-600 hover:text-blue-700 text-sm font-medium mr-3 transition-colors"
+                            className="text-black hover:text-gray-900 text-sm font-medium mr-3 transition-colors"
                           >
                             Edit
                           </button>

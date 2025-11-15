@@ -263,7 +263,7 @@ export default function CustomerOrder() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading menu...</p>
         </div>
       </div>
@@ -296,10 +296,10 @@ export default function CustomerOrder() {
                     <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                   )}
                   <div className="flex justify-between items-center mt-3">
-                    <span className="text-lg font-bold text-blue-600">₹{item.price.toFixed(2)}</span>
+                    <span className="text-lg font-bold text-black">₹{item.price.toFixed(2)}</span>
                     <button
                       onClick={() => addToCart(item)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
+                      className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-900 text-sm"
                     >
                       Add to Cart
                     </button>
@@ -315,24 +315,24 @@ export default function CustomerOrder() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-800">Your Order</h2>
                 {existingOrder && (
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
                     Active Order
                   </span>
                 )}
               </div>
               {existingOrder && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-blue-800">
+                <div className="mb-4 p-3 bg-gray-100 rounded-lg border border-gray-200">
+                  <p className="text-sm text-gray-800">
                     <strong>Order Status:</strong> {existingOrder.status}
                   </p>
-                  <p className="text-xs text-blue-600 mt-1">
+                  <p className="text-xs text-black mt-1">
                     Current Total: ₹{existingOrder.totalAmount?.toFixed(2) || "0.00"}
                   </p>
                   {existingOrder.status === "COMPLETED" && (
                     <button
                       onClick={generateBill}
                       disabled={generatingBill}
-                      className="mt-2 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium"
+                      className="mt-2 w-full bg-black text-white py-2 rounded-lg hover:bg-gray-900 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium"
                     >
                       {generatingBill ? "Generating Bill..." : "Generate Bill"}
                     </button>
@@ -346,29 +346,29 @@ export default function CustomerOrder() {
               )}
               
               {completedOrder && !existingOrder && (
-                <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-green-800">
+                <div className="mb-4 p-3 bg-gray-100 rounded-lg border border-green-200">
+                  <p className="text-sm text-gray-800">
                     <strong>Order Completed!</strong>
                   </p>
-                  <p className="text-xs text-green-600 mt-1">
+                  <p className="text-xs text-black mt-1">
                     Total: ₹{completedOrder.totalAmount?.toFixed(2) || "0.00"}
                   </p>
                   {!completedOrder.hasBill && (
                     <button
                       onClick={generateBill}
                       disabled={generatingBill}
-                      className="mt-2 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium"
+                      className="mt-2 w-full bg-black text-white py-2 rounded-lg hover:bg-gray-900 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium"
                     >
                       {generatingBill ? "Generating Bill..." : "Generate Bill"}
                     </button>
                   )}
                   {completedOrder.hasBill && (
-                    <p className="mt-2 text-xs text-green-700">
+                    <p className="mt-2 text-xs text-gray-900">
                       Bill already generated for this order.
                     </p>
                   )}
                   {hasCompletedOrders && completedOrdersCount > 0 && (
-                    <p className="text-xs text-green-600 mt-2">
+                    <p className="text-xs text-black mt-2">
                       You have {completedOrdersCount} more completed order{completedOrdersCount > 1 ? 's' : ''} for this table.
                     </p>
                   )}
@@ -376,15 +376,15 @@ export default function CustomerOrder() {
               )}
               
               {hasCompletedOrders && !existingOrder && !completedOrder && (
-                <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-green-800">
+                <div className="mb-4 p-3 bg-gray-100 rounded-lg border border-green-200">
+                  <p className="text-sm text-gray-800">
                     <strong>Previous Order Completed!</strong>
                   </p>
-                  <p className="text-xs text-green-600 mt-1">
+                  <p className="text-xs text-black mt-1">
                     You can now place a new order. All orders will be combined in your final bill.
                   </p>
                   {completedOrdersCount > 0 && (
-                    <p className="text-xs text-green-600 mt-1">
+                    <p className="text-xs text-black mt-1">
                       You have {completedOrdersCount} completed order{completedOrdersCount > 1 ? 's' : ''} for this table.
                     </p>
                   )}
@@ -436,7 +436,7 @@ export default function CustomerOrder() {
                           </button>
                           <button
                             onClick={() => removeFromCart(item.menuItemId)}
-                            className="ml-2 text-red-600 hover:text-red-700"
+                            className="ml-2 text-gray-700 hover:text-gray-900"
                           >
                             ×
                           </button>
@@ -460,7 +460,7 @@ export default function CustomerOrder() {
                       )}
                       <div className="flex justify-between items-center pt-2 border-t">
                         <span className="text-lg font-bold text-gray-800">Total:</span>
-                        <span className="text-xl font-bold text-blue-600">
+                        <span className="text-xl font-bold text-black">
                           ₹{((existingOrder?.totalAmount || 0) + getTotal()).toFixed(2)}
                         </span>
                       </div>
@@ -468,7 +468,7 @@ export default function CustomerOrder() {
                     <button
                       onClick={placeOrder}
                       disabled={submitting || cart.length === 0}
-                      className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
+                      className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
                     >
                       {submitting 
                         ? (existingOrder ? "Adding Items..." : "Placing Order...") 
@@ -599,7 +599,7 @@ export default function CustomerOrder() {
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t">
                       <span className="text-lg font-bold text-gray-800">Grand Total:</span>
-                      <span className="text-2xl font-bold text-blue-600">₹{bill.grandTotal?.toFixed(2) || "0.00"}</span>
+                      <span className="text-2xl font-bold text-black">₹{bill.grandTotal?.toFixed(2) || "0.00"}</span>
                     </div>
                   </div>
                 </div>
@@ -608,7 +608,7 @@ export default function CustomerOrder() {
                 <div className="flex gap-3 pt-4 border-t">
                   <button
                     onClick={() => downloadBill(bill.billId)}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                    className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                   >
                     Download PDF
                   </button>

@@ -85,7 +85,7 @@ export default function AccountsReceivable() {
             </div>
             <div className="card">
               <p className="text-xs text-gray-500 font-medium mb-1">Overdue Bills</p>
-              <p className="text-2xl font-semibold text-red-600">
+              <p className="text-2xl font-semibold text-gray-700">
                 {summary.overdueBills || 0}
               </p>
             </div>
@@ -153,9 +153,9 @@ export default function AccountsReceivable() {
                         </p>
                       </div>
                       <span className={`badge ${
-                        bill.paymentStatus === "PAID" ? "bg-green-100 text-green-800" :
-                        bill.paymentStatus === "PARTIAL" ? "bg-yellow-100 text-yellow-800" :
-                        bill.paymentStatus === "OVERDUE" ? "bg-red-100 text-red-800" :
+                        bill.paymentStatus === "PAID" ? "bg-gray-100 text-gray-800" :
+                        bill.paymentStatus === "PARTIAL" ? "bg-gray-200 text-gray-800" :
+                        bill.paymentStatus === "OVERDUE" ? "bg-gray-200 text-gray-900" :
                         "bg-gray-100 text-gray-800"
                       }`}>
                         {bill.paymentStatus || "PENDING"}
@@ -209,14 +209,14 @@ export default function AccountsReceivable() {
                       <td className="p-3 text-sm text-gray-700">
                         ₹{bill.paidAmount?.toFixed(2) || "0.00"}
                       </td>
-                      <td className="p-3 text-sm font-medium text-red-600">
+                      <td className="p-3 text-sm font-medium text-gray-700">
                         ₹{bill.pendingAmount?.toFixed(2) || "0.00"}
                       </td>
                       <td className="p-3">
                         <span className={`badge ${
-                          bill.paymentStatus === "PAID" ? "bg-green-100 text-green-800" :
-                          bill.paymentStatus === "PARTIAL" ? "bg-yellow-100 text-yellow-800" :
-                          bill.paymentStatus === "OVERDUE" ? "bg-red-100 text-red-800" :
+                          bill.paymentStatus === "PAID" ? "bg-gray-100 text-gray-800" :
+                          bill.paymentStatus === "PARTIAL" ? "bg-gray-200 text-gray-800" :
+                          bill.paymentStatus === "OVERDUE" ? "bg-gray-200 text-gray-900" :
                           "bg-gray-100 text-gray-800"
                         }`}>
                           {bill.paymentStatus || "PENDING"}

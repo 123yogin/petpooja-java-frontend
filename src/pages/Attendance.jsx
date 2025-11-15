@@ -196,7 +196,7 @@ export default function Attendance() {
                         Check Out
                       </button>
                     ) : (
-                      <span className="text-sm text-green-600 font-medium">Completed</span>
+                      <span className="text-sm text-black font-medium">Completed</span>
                     )}
                   </div>
                 </div>
@@ -281,9 +281,9 @@ export default function Attendance() {
                       </td>
                       <td className="p-3">
                         <span className={`badge ${
-                          att.status === "PRESENT" ? "bg-green-100 text-green-800" :
-                          att.status === "ABSENT" ? "bg-red-100 text-red-800" :
-                          "bg-yellow-100 text-yellow-800"
+                          att.status === "PRESENT" ? "bg-gray-100 text-gray-800" :
+                          att.status === "ABSENT" ? "bg-gray-200 text-gray-900" :
+                          "bg-gray-200 text-gray-800"
                         }`}>
                           {att.status}
                         </span>
@@ -291,7 +291,7 @@ export default function Attendance() {
                       <td className="p-3">
                         <button
                           onClick={() => startEdit(att)}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                          className="text-black hover:text-gray-900 text-sm font-medium"
                         >
                           Edit
                         </button>

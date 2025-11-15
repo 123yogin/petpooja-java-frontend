@@ -136,7 +136,7 @@ export default function Analytics() {
                 onClick={() => setSelectedPeriod(period)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedPeriod === period
-                    ? "bg-blue-600 text-white"
+                    ? "bg-black text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -172,7 +172,7 @@ export default function Analytics() {
                 ₹{trends.today?.sales?.toFixed(2) || "0.00"}
               </p>
               {trends.today?.salesChange !== undefined && (
-                <p className={`text-xs mt-1 ${trends.today.salesChange >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <p className={`text-xs mt-1 ${trends.today.salesChange >= 0 ? "text-black" : "text-gray-600"}`}>
                   {trends.today.salesChange >= 0 ? "↑" : "↓"} {Math.abs(trends.today.salesChange).toFixed(1)}% vs yesterday
                 </p>
               )}
@@ -183,7 +183,7 @@ export default function Analytics() {
                 ₹{trends.week?.sales?.toFixed(2) || "0.00"}
               </p>
               {trends.week?.salesChange !== undefined && (
-                <p className={`text-xs mt-1 ${trends.week.salesChange >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <p className={`text-xs mt-1 ${trends.week.salesChange >= 0 ? "text-black" : "text-gray-600"}`}>
                   {trends.week.salesChange >= 0 ? "↑" : "↓"} {Math.abs(trends.week.salesChange).toFixed(1)}% vs last week
                 </p>
               )}
@@ -194,7 +194,7 @@ export default function Analytics() {
                 ₹{trends.month?.sales?.toFixed(2) || "0.00"}
               </p>
               {trends.month?.salesChange !== undefined && (
-                <p className={`text-xs mt-1 ${trends.month.salesChange >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <p className={`text-xs mt-1 ${trends.month.salesChange >= 0 ? "text-black" : "text-gray-600"}`}>
                   {trends.month.salesChange >= 0 ? "↑" : "↓"} {Math.abs(trends.month.salesChange).toFixed(1)}% vs last month
                 </p>
               )}
@@ -307,8 +307,8 @@ export default function Analytics() {
                   <div className="text-right">
                     <p className="text-sm font-semibold text-gray-900">₹{order.totalAmount?.toFixed(2) || "0.00"}</p>
                     <span className={`text-xs px-2 py-1 rounded ${
-                      order.status === "COMPLETED" ? "bg-green-100 text-green-800" :
-                      order.status === "IN_PROGRESS" ? "bg-blue-100 text-blue-800" :
+                      order.status === "COMPLETED" ? "bg-gray-100 text-gray-800" :
+                      order.status === "IN_PROGRESS" ? "bg-gray-200 text-gray-900" :
                       "bg-gray-100 text-gray-800"
                     }`}>
                       {order.status}
@@ -363,11 +363,11 @@ export default function Analytics() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Revenue:</span>
-                    <span className="text-sm font-semibold text-green-600">₹{profitLoss.revenue?.toFixed(2) || "0.00"}</span>
+                    <span className="text-sm font-semibold text-black">₹{profitLoss.revenue?.toFixed(2) || "0.00"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Total Expenses:</span>
-                    <span className="text-sm font-semibold text-red-600">₹{profitLoss.expenses?.toFixed(2) || "0.00"}</span>
+                    <span className="text-sm font-semibold text-gray-600">₹{profitLoss.expenses?.toFixed(2) || "0.00"}</span>
                   </div>
                   <div className="flex justify-between pl-4">
                     <span className="text-xs text-gray-500">Purchase Expenses:</span>
@@ -380,13 +380,13 @@ export default function Analytics() {
                   <div className="border-t border-gray-200 pt-2 mt-2">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-gray-900">Net Profit:</span>
-                      <span className={`text-sm font-semibold ${profitLoss.netProfit >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      <span className={`text-sm font-semibold ${profitLoss.netProfit >= 0 ? "text-black" : "text-gray-600"}`}>
                         ₹{profitLoss.netProfit?.toFixed(2) || "0.00"}
                       </span>
                     </div>
                     <div className="flex justify-between mt-1">
                       <span className="text-xs text-gray-500">Profit Margin:</span>
-                      <span className={`text-xs font-medium ${profitLoss.profitMargin >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      <span className={`text-xs font-medium ${profitLoss.profitMargin >= 0 ? "text-black" : "text-gray-600"}`}>
                         {profitLoss.profitMargin?.toFixed(2) || "0.00"}%
                       </span>
                     </div>
@@ -418,11 +418,11 @@ export default function Analytics() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Cash Inflows:</span>
-                    <span className="text-sm font-semibold text-green-600">₹{cashFlow.cashInflows?.toFixed(2) || "0.00"}</span>
+                    <span className="text-sm font-semibold text-black">₹{cashFlow.cashInflows?.toFixed(2) || "0.00"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Cash Outflows:</span>
-                    <span className="text-sm font-semibold text-red-600">₹{cashFlow.cashOutflows?.toFixed(2) || "0.00"}</span>
+                    <span className="text-sm font-semibold text-gray-600">₹{cashFlow.cashOutflows?.toFixed(2) || "0.00"}</span>
                   </div>
                   <div className="flex justify-between pl-4">
                     <span className="text-xs text-gray-500">Purchase Outflows:</span>
@@ -435,7 +435,7 @@ export default function Analytics() {
                   <div className="border-t border-gray-200 pt-2 mt-2">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-gray-900">Net Cash Flow:</span>
-                      <span className={`text-sm font-semibold ${cashFlow.netCashFlow >= 0 ? "text-green-600" : "text-red-600"}`}>
+                      <span className={`text-sm font-semibold ${cashFlow.netCashFlow >= 0 ? "text-black" : "text-gray-600"}`}>
                         ₹{cashFlow.netCashFlow?.toFixed(2) || "0.00"}
                       </span>
                     </div>
@@ -448,18 +448,18 @@ export default function Analytics() {
 
         {/* Low Stock Alerts */}
         {lowStockItems.length > 0 && (
-          <div className="card border-l-4 border-red-500">
+          <div className="card border-l-4 border-gray-900">
             <h3 className="text-base font-medium mb-4 text-gray-900 flex items-center">
-              <svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-gray-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
               Low Stock Alerts ({lowStockItems.length})
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {lowStockItems.slice(0, 6).map((item) => (
-                <div key={item.id} className="p-3 bg-red-50 rounded-lg">
+                <div key={item.id} className="p-3 bg-gray-100 rounded-lg">
                   <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                  <p className="text-xs text-red-600 mt-1">
+                  <p className="text-xs text-gray-600 mt-1">
                     Stock: {item.quantity?.toFixed(2) || 0} {item.unit || ""} (Threshold: {item.threshold?.toFixed(2) || 0})
                   </p>
                 </div>

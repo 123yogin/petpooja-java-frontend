@@ -175,8 +175,8 @@ export default function Tables() {
                     <span
                       className={`badge ${
                         t.occupied
-                          ? "bg-red-100 text-red-800"
-                          : "bg-green-100 text-green-800"
+                          ? "bg-gray-200 text-gray-900"
+                          : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       {t.occupied ? "Occupied" : "Available"}
@@ -203,7 +203,7 @@ export default function Tables() {
                     </button>
                     <button
                       onClick={() => showQrCode(t.id)}
-                      className="px-3 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg text-sm font-medium transition-colors"
+                      className="px-3 py-2 bg-black text-white hover:bg-gray-900 rounded-lg text-sm font-medium transition-colors"
                     >
                       QR Code
                     </button>
@@ -247,8 +247,8 @@ export default function Tables() {
                       <span
                         className={`badge ${
                           selectedTable.occupied
-                            ? "bg-red-100 text-red-800"
-                            : "bg-green-100 text-green-800"
+                            ? "bg-gray-200 text-gray-900"
+                            : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {selectedTable.occupied ? "Occupied" : "Available"}
@@ -342,7 +342,7 @@ export default function Tables() {
               <div className="flex gap-2">
                 <button
                   onClick={() => downloadQrCode(selectedTableQr.tableId, selectedTableQr.tableNumber)}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                  className="flex-1 bg-black text-white py-2 rounded hover:bg-gray-900"
                 >
                   Download
                 </button>

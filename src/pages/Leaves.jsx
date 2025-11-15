@@ -184,14 +184,14 @@ export default function Leaves() {
                           {leave.employee?.name || "N/A"}
                         </h3>
                         <span className={`badge ${
-                          leave.status === "APPROVED" ? "bg-green-100 text-green-800" :
-                          leave.status === "REJECTED" ? "bg-red-100 text-red-800" :
-                          leave.status === "PENDING" ? "bg-yellow-100 text-yellow-800" :
+                          leave.status === "APPROVED" ? "bg-gray-100 text-gray-800" :
+                          leave.status === "REJECTED" ? "bg-gray-200 text-gray-900" :
+                          leave.status === "PENDING" ? "bg-gray-200 text-gray-800" :
                           "bg-gray-100 text-gray-800"
                         }`}>
                           {leave.status}
                         </span>
-                        <span className="badge bg-blue-100 text-blue-800">{leave.leaveType}</span>
+                        <span className="badge bg-gray-100 text-gray-800">{leave.leaveType}</span>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">
                         <p>
@@ -212,7 +212,7 @@ export default function Leaves() {
                           </p>
                         )}
                         {leave.rejectionReason && (
-                          <p className="text-red-600">
+                          <p className="text-gray-700">
                             <span className="font-medium">Rejection Reason:</span> {leave.rejectionReason}
                           </p>
                         )}

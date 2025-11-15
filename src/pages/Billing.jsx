@@ -279,7 +279,7 @@ export default function Billing() {
                     {can(userRole, "canGenerateBills") && (
                       <button
                         onClick={() => generateCombinedBillForTable(table.id)}
-                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium transition-colors"
+                        className="w-full px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                       >
                         Generate Combined Bill
                       </button>
@@ -354,13 +354,13 @@ export default function Billing() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => viewBill(orderBillsMap[order.id])}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                             >
                               View Bill
                             </button>
                             <button
                               onClick={() => downloadInvoice(orderBillsMap[order.id])}
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+                              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                             >
                               Download
                             </button>
@@ -369,7 +369,7 @@ export default function Billing() {
                           can(userRole, "canGenerateBills") && (
                           <button
                             onClick={() => generateBill(order.id)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                            className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                           >
                             Generate Bill
                           </button>
@@ -412,7 +412,7 @@ export default function Billing() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => downloadInvoice(selectedBill.id)}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                        className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                       >
                         Download PDF
                       </button>
@@ -531,13 +531,13 @@ export default function Billing() {
                     <div className="flex gap-3 pt-4 border-t">
                       <button
                         onClick={() => loadInvoiceText(selectedBill.id)}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                        className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                       >
                         View Invoice Text
                       </button>
                       <button
                         onClick={() => downloadInvoice(selectedBill.id)}
-                        className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                        className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                       >
                         Download PDF
                       </button>

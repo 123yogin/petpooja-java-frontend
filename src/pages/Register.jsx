@@ -51,9 +51,9 @@ export default function Register() {
   };
 
   const getPasswordStrengthColor = (score) => {
-    if (score <= 2) return "bg-red-500";
-    if (score <= 3) return "bg-yellow-500";
-    return "bg-green-500";
+    if (score <= 2) return "bg-gray-800";
+    if (score <= 3) return "bg-gray-500";
+    return "bg-black";
   };
 
   const handleSubmit = async (e) => {
@@ -176,18 +176,18 @@ export default function Register() {
             </div>
             
             {message && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-100 text-green-700 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg text-sm">
                 {message}
               </div>
             )}
             
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
-            <div className="mb-6 p-3 bg-gray-50 border border-gray-100 text-gray-700 rounded-lg text-sm">
+            <div className="mb-6 p-3 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg text-sm">
               Confirmation code sent to <strong>{userEmail || form.email}</strong>
             </div>
 
@@ -243,13 +243,13 @@ export default function Register() {
           </div>
           
           {message && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-100 text-green-700 rounded-lg text-sm">
+            <div className="mb-4 p-3 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg text-sm">
               {message}
             </div>
           )}
           
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">
+            <div className="mb-4 p-3 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -304,9 +304,9 @@ export default function Register() {
                     ))}
                   </div>
                   <p className={`text-xs ${
-                    passwordStrength.score <= 2 ? "text-red-600" :
-                    passwordStrength.score <= 3 ? "text-yellow-600" :
-                    "text-green-600"
+                    passwordStrength.score <= 2 ? "text-gray-600" :
+                    passwordStrength.score <= 3 ? "text-gray-700" :
+                    "text-black font-medium"
                   }`}>
                     {passwordStrength.feedback}
                   </p>
@@ -335,7 +335,7 @@ export default function Register() {
                 id="terms"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-1"
+                className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2 mt-1"
                 required
               />
               <label htmlFor="terms" className="ml-2 text-sm text-gray-700">

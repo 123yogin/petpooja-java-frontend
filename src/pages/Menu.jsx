@@ -264,7 +264,7 @@ export default function Menu() {
           <h2 className="text-lg font-medium text-gray-900 mb-4">Category Management</h2>
           <div className="flex flex-wrap gap-2 mb-3">
             {categories.map((cat) => (
-              <span key={cat} className="badge bg-blue-100 text-blue-800">
+              <span key={cat} className="badge bg-gray-100 text-gray-800">
                 {cat}
               </span>
             ))}
@@ -362,7 +362,7 @@ export default function Menu() {
               {selectedItems.length > 0 && (
                 <button
                   onClick={deleteBulk}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
+                  className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium"
                 >
                   Delete Selected ({selectedItems.length})
                 </button>
@@ -420,7 +420,7 @@ export default function Menu() {
                         <td className="p-3">
                           <button
                             onClick={() => setSelectedItem(i)}
-                            className="font-medium text-gray-900 hover:text-blue-600 text-left"
+                            className="font-medium text-gray-900 hover:text-black text-left"
                           >
                             {i.name}
                           </button>
@@ -436,8 +436,8 @@ export default function Menu() {
                             onClick={() => toggleAvailability(i.id)}
                             className={`badge cursor-pointer transition-colors ${
                               i.available
-                                ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                : "bg-red-100 text-red-800 hover:bg-red-200"
+                                ? "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                                : "bg-gray-200 text-gray-900 hover:bg-gray-300"
                             }`}
                           >
                             {i.available ? "Yes" : "No"}
@@ -447,13 +447,13 @@ export default function Menu() {
                           <div className="flex gap-3">
                             <button
                               onClick={() => startEdit(i)}
-                              className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+                              className="text-black hover:text-gray-900 text-sm font-medium transition-colors"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => deleteItem(i.id)}
-                              className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+                              className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-colors"
                             >
                               Delete
                             </button>
@@ -531,7 +531,7 @@ export default function Menu() {
                     <div>
                       <p className="text-sm text-gray-500 mb-1">Category</p>
                       <p className="text-base font-medium text-gray-900">
-                        <span className="badge bg-blue-100 text-blue-800">{selectedItem.category}</span>
+                        <span className="badge bg-gray-100 text-gray-800">{selectedItem.category}</span>
                       </p>
                     </div>
                     <div>
@@ -543,8 +543,8 @@ export default function Menu() {
                       <span
                         className={`badge ${
                           selectedItem.available
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                            ? "bg-gray-100 text-gray-800"
+                            : "bg-gray-200 text-gray-900"
                         }`}
                       >
                         {selectedItem.available ? "Available" : "Unavailable"}
@@ -571,7 +571,7 @@ export default function Menu() {
                         startEdit(selectedItem);
                         setSelectedItem(null);
                       }}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                      className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                     >
                       Edit Item
                     </button>

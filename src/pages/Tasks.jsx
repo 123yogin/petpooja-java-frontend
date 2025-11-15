@@ -135,11 +135,11 @@ export default function Tasks() {
   const getStatusColor = (status) => {
     switch (status) {
       case "COMPLETED":
-        return "bg-green-100 text-green-800";
+        return "bg-gray-100 text-gray-800";
       case "IN_PROGRESS":
-        return "bg-blue-100 text-blue-800";
+        return "bg-gray-200 text-gray-900";
       case "PENDING":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-gray-200 text-gray-800";
       case "CANCELLED":
         return "bg-gray-100 text-gray-800";
       default:
@@ -150,11 +150,11 @@ export default function Tasks() {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "HIGH":
-        return "bg-red-100 text-red-800";
+        return "bg-gray-200 text-gray-900";
       case "MEDIUM":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-gray-200 text-gray-800";
       case "LOW":
-        return "bg-green-100 text-green-800";
+        return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -244,7 +244,7 @@ export default function Tasks() {
                 <div
                   key={task.id}
                   className={`border rounded-lg p-4 hover:border-gray-300 transition-all ${
-                    isOverdue(task) ? "border-red-300 bg-red-50" : "border-gray-100 bg-white"
+                    isOverdue(task) ? "border-gray-400 bg-gray-100" : "border-gray-100 bg-white"
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -258,7 +258,7 @@ export default function Tasks() {
                           {task.priority}
                         </span>
                         {isOverdue(task) && (
-                          <span className="badge bg-red-100 text-red-800">Overdue</span>
+                          <span className="badge bg-gray-200 text-gray-900">Overdue</span>
                         )}
                       </div>
                       {task.description && (
@@ -281,7 +281,7 @@ export default function Tasks() {
                           </span>
                         )}
                         {task.completedAt && (
-                          <span className="text-green-600">
+                          <span className="text-black">
                             Completed: <span className="font-medium">{new Date(task.completedAt).toLocaleString()}</span>
                           </span>
                         )}
@@ -298,7 +298,7 @@ export default function Tasks() {
                           {task.status === "PENDING" && (
                             <button
                               onClick={() => updateTaskStatus(task.id, "IN_PROGRESS")}
-                              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                              className="px-3 py-1.5 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                             >
                               Start
                             </button>
@@ -306,7 +306,7 @@ export default function Tasks() {
                           {task.status === "IN_PROGRESS" && (
                             <button
                               onClick={() => updateTaskStatus(task.id, "COMPLETED")}
-                              className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+                              className="px-3 py-1.5 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                             >
                               Complete
                             </button>
@@ -335,13 +335,13 @@ export default function Tasks() {
                           });
                           setShowModal(true);
                         }}
-                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                        className="px-3 py-1.5 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => deleteTask(task.id)}
-                        className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition-colors"
+                        className="px-3 py-1.5 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors"
                       >
                         Delete
                       </button>
@@ -421,7 +421,7 @@ export default function Tasks() {
                     {selectedTask.completedAt && (
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Completed At</p>
-                        <p className="text-base text-green-600 font-medium">
+                        <p className="text-base text-black font-medium">
                           {new Date(selectedTask.completedAt).toLocaleString()}
                         </p>
                       </div>
@@ -444,7 +444,7 @@ export default function Tasks() {
                               updateTaskStatus(selectedTask.id, "IN_PROGRESS");
                               setSelectedTask(null);
                             }}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                            className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                           >
                             Start Task
                           </button>
@@ -455,7 +455,7 @@ export default function Tasks() {
                               updateTaskStatus(selectedTask.id, "COMPLETED");
                               setSelectedTask(null);
                             }}
-                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                            className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 font-medium"
                           >
                             Complete Task
                           </button>

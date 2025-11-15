@@ -33,14 +33,14 @@ const StatCard = ({ title, value, change, isLoading, icon }) => {
           {change !== null && change !== undefined && (
             <div className="flex items-center mt-2">
               {isPositive ? (
-                <span className="text-green-600 text-xs font-medium flex items-center">
+                <span className="text-black text-xs font-medium flex items-center">
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                   {Math.abs(change).toFixed(1)}%
                 </span>
               ) : isNegative ? (
-                <span className="text-red-600 text-xs font-medium flex items-center">
+                <span className="text-gray-600 text-xs font-medium flex items-center">
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
@@ -231,7 +231,7 @@ export default function Dashboard() {
           {error && (
             <button
               onClick={handleRetry}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
+              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm font-medium"
             >
               Retry ({retryCount})
             </button>
@@ -247,7 +247,7 @@ export default function Dashboard() {
               onClick={() => setSelectedPeriod(period)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 selectedPeriod === period
-                  ? "bg-blue-600 text-white"
+                  ? "bg-black text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -343,7 +343,7 @@ export default function Dashboard() {
           <div className="card">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-medium text-gray-900">Recent Orders</h2>
-              <Link to="/orders" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <Link to="/orders" className="text-sm text-black hover:text-gray-900 font-medium">
                 View All
               </Link>
             </div>
@@ -370,9 +370,9 @@ export default function Dashboard() {
                     <div className="text-right">
                       <p className="text-sm font-semibold text-gray-900">₹{order.totalAmount.toFixed(2)}</p>
                       <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                        order.status === "COMPLETED" ? "bg-green-100 text-green-800" :
-                        order.status === "IN_PROGRESS" ? "bg-blue-100 text-blue-800" :
-                        order.status === "CREATED" ? "bg-yellow-100 text-yellow-800" :
+                        order.status === "COMPLETED" ? "bg-gray-100 text-gray-800" :
+                        order.status === "IN_PROGRESS" ? "bg-gray-200 text-gray-900" :
+                        order.status === "CREATED" ? "bg-gray-200 text-gray-800" :
                         "bg-gray-100 text-gray-800"
                       }`}>
                         {order.status}
@@ -391,23 +391,23 @@ export default function Dashboard() {
 
         {/* Low Stock Alerts - Only show for ADMIN */}
         {can(userRole, "canManageInventory") && lowStockItems.length > 0 && (
-          <div className="card border-l-4 border-red-500">
+          <div className="card border-l-4 border-gray-900">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-gray-900 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
                 <h2 className="text-lg font-medium text-gray-900">Low Stock Alerts</h2>
               </div>
-              <Link to="/inventory" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <Link to="/inventory" className="text-sm text-black hover:text-gray-900 font-medium">
                 Manage Inventory
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {lowStockItems.slice(0, 6).map((item) => (
-                <div key={item.id} className="p-3 bg-red-50 rounded-lg">
+                <div key={item.id} className="p-3 bg-gray-100 rounded-lg">
                   <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                  <p className="text-xs text-red-600 mt-1">
+                  <p className="text-xs text-gray-700 mt-1">
                     Stock: {item.quantity.toFixed(2)} {item.unit || ""} (Threshold: {item.threshold.toFixed(2)})
                   </p>
                 </div>

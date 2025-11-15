@@ -150,13 +150,13 @@ export default function Suppliers() {
                               });
                               setShowModal(true);
                             }}
-                            className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+                            className="text-black hover:text-gray-900 text-sm font-medium transition-colors"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => deleteSupplier(supplier.id)}
-                            className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+                            className="text-gray-700 hover:text-gray-900 text-sm font-medium transition-colors"
                           >
                             Delete
                           </button>

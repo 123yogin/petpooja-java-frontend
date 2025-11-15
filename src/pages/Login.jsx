@@ -146,12 +146,12 @@ export default function Login() {
             </div>
             
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
-            <div className="mb-6 p-3 bg-gray-50 border border-gray-100 text-gray-700 rounded-lg text-sm">
+            <div className="mb-6 p-3 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg text-sm">
               Confirmation code sent to <strong>{form.email}</strong>
             </div>
 
@@ -207,7 +207,7 @@ export default function Login() {
           </div>
           
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">
+            <div className="mb-4 p-3 bg-gray-100 border border-gray-300 text-gray-900 rounded-lg text-sm">
               {error}
               {error.includes("not confirmed") && (
                 <div className="mt-2">
@@ -254,7 +254,7 @@ export default function Login() {
                 id="rememberMe"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2"
               />
               <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700">
                 Remember me

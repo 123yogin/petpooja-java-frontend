@@ -182,7 +182,7 @@ export default function Outlets() {
                     </div>
                     <span
                       className={`badge ${
-                        outlet.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                        outlet.isActive ? "bg-gray-100 text-gray-800" : "bg-gray-200 text-gray-900"
                       }`}
                     >
                       {outlet.isActive ? "Active" : "Inactive"}
