@@ -21,6 +21,33 @@ export default function Menu() {
   const [categories, setCategories] = useState(["Appetizer", "Main Course", "Dessert", "Beverage", "Soup", "Salad"]);
   const [newCategory, setNewCategory] = useState("");
   const [showModal, setShowModal] = useState(false);
+  
+  // Modifier management state
+  const [modifierGroups, setModifierGroups] = useState([]);
+  const [showModifierManagement, setShowModifierManagement] = useState(false);
+  const [selectedModifierGroup, setSelectedModifierGroup] = useState(null);
+  const [modifierGroupForm, setModifierGroupForm] = useState({
+    name: "",
+    description: "",
+    isRequired: false,
+    allowMultiple: false,
+    minSelection: 0,
+    maxSelection: null,
+    isActive: true
+  });
+  const [editingModifierGroupId, setEditingModifierGroupId] = useState(null);
+  const [modifierForm, setModifierForm] = useState({
+    name: "",
+    description: "",
+    price: "",
+    isActive: true,
+    displayOrder: ""
+  });
+  const [editingModifierId, setEditingModifierId] = useState(null);
+  const [showModifierModal, setShowModifierModal] = useState(false);
+  const [menuItemModifierGroups, setMenuItemModifierGroups] = useState({}); // Map menuItemId -> modifierGroups
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkingMenuItem, setLinkingMenuItem] = useState(null);
 
   const loadItems = async () => {
     try {
@@ -33,7 +60,57 @@ export default function Menu() {
 
   useEffect(() => {
     loadItems();
+    loadModifierGroups();
   }, []);
+
+  const loadModifierGroups = async () => {
+    try {
+      const res = await API.get("/modifiers/groups");
+      const groups = res.data;
+      // Load modifiers for each group
+      const groupsWithModifiers = await Promise.all(
+        groups.map(async (group) => {
+          try {
+            const modifiersRes = await API.get(`/modifiers/groups/${group.id}/modifiers`);
+            return {
+              ...group,
+              modifiers: modifiersRes.data
+            };
+          } catch (err) {
+            return {
+              ...group,
+              modifiers: []
+            };
+          }
+        })
+      );
+      setModifierGroups(groupsWithModifiers);
+    } catch (err) {
+      console.error("Failed to load modifier groups");
+    }
+  };
+
+  const loadModifiersForGroup = async (groupId) => {
+    try {
+      const res = await API.get(`/modifiers/groups/${groupId}/modifiers`);
+      return res.data;
+    } catch (err) {
+      console.error("Failed to load modifiers");
+      return [];
+    }
+  };
+
+  const loadModifierGroupsForMenuItem = async (menuItemId) => {
+    try {
+      const res = await API.get(`/modifiers/menu-items/${menuItemId}/modifier-groups`);
+      setMenuItemModifierGroups(prev => ({
+        ...prev,
+        [menuItemId]: res.data
+      }));
+    } catch (err) {
+      console.error("Failed to load modifier groups for menu item");
+    }
+  };
 
   // Extract unique categories from items
   useEffect(() => {
@@ -251,6 +328,212 @@ export default function Menu() {
     }
   };
 
+  // Modifier Group Management
+  const createModifierGroup = async (e) => {
+    e.preventDefault();
+    try {
+      await API.post("/modifiers/groups", {
+        ...modifierGroupForm,
+        maxSelection: modifierGroupForm.maxSelection ? parseInt(modifierGroupForm.maxSelection) : null,
+        minSelection: parseInt(modifierGroupForm.minSelection) || 0
+      });
+      toast.success("Modifier group created!");
+      setModifierGroupForm({
+        name: "",
+        description: "",
+        isRequired: false,
+        allowMultiple: false,
+        minSelection: 0,
+        maxSelection: null,
+        isActive: true
+      });
+      loadModifierGroups();
+    } catch (err) {
+      toast.error("Failed to create modifier group");
+    }
+  };
+
+  const updateModifierGroup = async (e) => {
+    e.preventDefault();
+    try {
+      await API.put(`/modifiers/groups/${editingModifierGroupId}`, {
+        ...modifierGroupForm,
+        maxSelection: modifierGroupForm.maxSelection ? parseInt(modifierGroupForm.maxSelection) : null,
+        minSelection: parseInt(modifierGroupForm.minSelection) || 0
+      });
+      toast.success("Modifier group updated!");
+      setEditingModifierGroupId(null);
+      setModifierGroupForm({
+        name: "",
+        description: "",
+        isRequired: false,
+        allowMultiple: false,
+        minSelection: 0,
+        maxSelection: null,
+        isActive: true
+      });
+      loadModifierGroups();
+    } catch (err) {
+      toast.error("Failed to update modifier group");
+    }
+  };
+
+  const deleteModifierGroup = async (id) => {
+    if (!window.confirm("Delete this modifier group? All modifiers in this group will also be deleted.")) return;
+    try {
+      await API.delete(`/modifiers/groups/${id}`);
+      toast.success("Modifier group deleted!");
+      loadModifierGroups();
+    } catch (err) {
+      toast.error("Failed to delete modifier group");
+    }
+  };
+
+  const startEditModifierGroup = (group) => {
+    setEditingModifierGroupId(group.id);
+    setModifierGroupForm({
+      name: group.name || "",
+      description: group.description || "",
+      isRequired: group.isRequired || false,
+      allowMultiple: group.allowMultiple || false,
+      minSelection: group.minSelection || 0,
+      maxSelection: group.maxSelection || null,
+      isActive: group.isActive !== undefined ? group.isActive : true
+    });
+  };
+
+  const cancelEditModifierGroup = () => {
+    setEditingModifierGroupId(null);
+    setModifierGroupForm({
+      name: "",
+      description: "",
+      isRequired: false,
+      allowMultiple: false,
+      minSelection: 0,
+      maxSelection: null,
+      isActive: true
+    });
+  };
+
+  // Modifier Management
+  const createModifier = async (e) => {
+    e.preventDefault();
+    if (!selectedModifierGroup) {
+      toast.error("Please select a modifier group first");
+      return;
+    }
+    try {
+      await API.post("/modifiers/modifiers", {
+        ...modifierForm,
+        modifierGroupId: selectedModifierGroup.id,
+        price: parseFloat(modifierForm.price) || 0,
+        displayOrder: modifierForm.displayOrder ? parseInt(modifierForm.displayOrder) : null
+      });
+      toast.success("Modifier created!");
+      setModifierForm({
+        name: "",
+        description: "",
+        price: "",
+        isActive: true,
+        displayOrder: ""
+      });
+      setShowModifierModal(false);
+      loadModifierGroups();
+    } catch (err) {
+      toast.error("Failed to create modifier");
+    }
+  };
+
+  const updateModifier = async (e) => {
+    e.preventDefault();
+    try {
+      await API.put(`/modifiers/modifiers/${editingModifierId}`, {
+        ...modifierForm,
+        price: parseFloat(modifierForm.price) || 0,
+        displayOrder: modifierForm.displayOrder ? parseInt(modifierForm.displayOrder) : null
+      });
+      toast.success("Modifier updated!");
+      setEditingModifierId(null);
+      setModifierForm({
+        name: "",
+        description: "",
+        price: "",
+        isActive: true,
+        displayOrder: ""
+      });
+      setShowModifierModal(false);
+      loadModifierGroups();
+    } catch (err) {
+      toast.error("Failed to update modifier");
+    }
+  };
+
+  const deleteModifier = async (id) => {
+    if (!window.confirm("Delete this modifier?")) return;
+    try {
+      await API.delete(`/modifiers/modifiers/${id}`);
+      toast.success("Modifier deleted!");
+      loadModifierGroups();
+    } catch (err) {
+      toast.error("Failed to delete modifier");
+    }
+  };
+
+  const startEditModifier = (modifier) => {
+    setEditingModifierId(modifier.id);
+    setModifierForm({
+      name: modifier.name || "",
+      description: modifier.description || "",
+      price: modifier.price?.toString() || "",
+      isActive: modifier.isActive !== undefined ? modifier.isActive : true,
+      displayOrder: modifier.displayOrder?.toString() || ""
+    });
+    setShowModifierModal(true);
+  };
+
+  const openAddModifierModal = (group) => {
+    setSelectedModifierGroup(group);
+    setEditingModifierId(null);
+    setModifierForm({
+      name: "",
+      description: "",
+      price: "",
+      isActive: true,
+      displayOrder: ""
+    });
+    setShowModifierModal(true);
+  };
+
+  // Link Modifier Groups to Menu Items
+  const linkModifierGroupToMenuItem = async (menuItemId, modifierGroupId) => {
+    try {
+      await API.post(`/modifiers/menu-items/${menuItemId}/modifier-groups/${modifierGroupId}`, {
+        displayOrder: 0
+      });
+      toast.success("Modifier group linked to menu item!");
+      loadModifierGroupsForMenuItem(menuItemId);
+    } catch (err) {
+      toast.error("Failed to link modifier group");
+    }
+  };
+
+  const unlinkModifierGroupFromMenuItem = async (menuItemId, modifierGroupId) => {
+    if (!window.confirm("Unlink this modifier group from the menu item?")) return;
+    try {
+      // Note: This endpoint might need to be created in the backend
+      // For now, we'll use a workaround by deleting the link
+      const links = menuItemModifierGroups[menuItemId] || [];
+      const link = links.find(l => l.modifierGroup.id === modifierGroupId);
+      if (link) {
+        await API.delete(`/modifiers/menu-items/${menuItemId}/modifier-groups/${modifierGroupId}`);
+        toast.success("Modifier group unlinked!");
+        loadModifierGroupsForMenuItem(menuItemId);
+      }
+    } catch (err) {
+      toast.error("Failed to unlink modifier group");
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -284,12 +567,200 @@ export default function Menu() {
           </div>
         </div>
 
-        {/* Add Button */}
-        <div className="flex justify-end">
+        {/* Add Button and Modifier Management Toggle */}
+        <div className="flex justify-between items-center">
+          <button
+            onClick={() => setShowModifierManagement(!showModifierManagement)}
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium"
+          >
+            {showModifierManagement ? "Hide" : "Show"} Modifier Management
+          </button>
           <button onClick={openAddModal} className="btn-primary">
             + Add New Menu Item
           </button>
         </div>
+
+        {/* Modifier Management Section */}
+        {showModifierManagement && (
+          <div className="card">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Modifier Groups</h2>
+            
+            {/* Modifier Group Form */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-base font-medium text-gray-900 mb-3">
+                {editingModifierGroupId ? "Edit Modifier Group" : "Create New Modifier Group"}
+              </h3>
+              <form onSubmit={editingModifierGroupId ? updateModifierGroup : createModifierGroup} className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input
+                    placeholder="Group Name (e.g., Size, Toppings)"
+                    className="input-field"
+                    value={modifierGroupForm.name}
+                    onChange={(e) => setModifierGroupForm({ ...modifierGroupForm, name: e.target.value })}
+                    required
+                  />
+                  <input
+                    placeholder="Description (optional)"
+                    className="input-field"
+                    value={modifierGroupForm.description}
+                    onChange={(e) => setModifierGroupForm({ ...modifierGroupForm, description: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={modifierGroupForm.isRequired}
+                      onChange={(e) => setModifierGroupForm({ ...modifierGroupForm, isRequired: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-700">Required</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={modifierGroupForm.allowMultiple}
+                      onChange={(e) => setModifierGroupForm({ ...modifierGroupForm, allowMultiple: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-700">Allow Multiple</span>
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Min Selection"
+                    min="0"
+                    className="input-field"
+                    value={modifierGroupForm.minSelection}
+                    onChange={(e) => setModifierGroupForm({ ...modifierGroupForm, minSelection: parseInt(e.target.value) || 0 })}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max Selection (optional)"
+                    min="1"
+                    className="input-field"
+                    value={modifierGroupForm.maxSelection || ""}
+                    onChange={(e) => setModifierGroupForm({ ...modifierGroupForm, maxSelection: e.target.value ? parseInt(e.target.value) : null })}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button type="submit" className="btn-primary">
+                    {editingModifierGroupId ? "Update Group" : "Create Group"}
+                  </button>
+                  {editingModifierGroupId && (
+                    <button
+                      type="button"
+                      onClick={cancelEditModifierGroup}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            {/* Modifier Groups List */}
+            <div className="space-y-4">
+              {modifierGroups.length === 0 ? (
+                <p className="text-gray-500 text-center py-4 text-sm">No modifier groups yet. Create one above!</p>
+              ) : (
+                modifierGroups.map((group) => (
+                  <div key={group.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">
+                          {group.name}
+                          {group.isRequired && <span className="text-red-500 ml-1">*</span>}
+                        </h4>
+                        {group.description && (
+                          <p className="text-sm text-gray-500 mt-1">{group.description}</p>
+                        )}
+                        <div className="flex gap-2 mt-2">
+                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                            {group.allowMultiple ? "Multiple" : "Single"} selection
+                          </span>
+                          {group.minSelection > 0 && (
+                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                              Min: {group.minSelection}
+                            </span>
+                          )}
+                          {group.maxSelection && (
+                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                              Max: {group.maxSelection}
+                            </span>
+                          )}
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            group.isActive ? "bg-gray-100 text-gray-700" : "bg-gray-200 text-gray-500"
+                          }`}>
+                            {group.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedModifierGroup(group);
+                            openAddModifierModal(group);
+                          }}
+                          className="px-3 py-1 text-sm bg-black text-white rounded hover:bg-gray-800"
+                        >
+                          + Add Modifier
+                        </button>
+                        <button
+                          onClick={() => startEditModifierGroup(group)}
+                          className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteModifierGroup(group.id)}
+                          className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Modifiers in this group */}
+                    {group.modifiers && group.modifiers.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <p className="text-sm font-medium text-gray-700 mb-2">Modifiers:</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {group.modifiers
+                            .filter(m => m.isActive)
+                            .map((modifier) => (
+                            <div key={modifier.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                              <div>
+                                <span className="text-sm text-gray-900">{modifier.name}</span>
+                                {modifier.price > 0 && (
+                                  <span className="text-xs text-gray-600 ml-2">+₹{modifier.price.toFixed(2)}</span>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => startEditModifier(modifier)}
+                                  className="text-xs text-gray-600 hover:text-gray-900"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => deleteModifier(modifier.id)}
+                                  className="text-xs text-red-600 hover:text-red-800"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div className="card">
@@ -446,6 +917,17 @@ export default function Menu() {
                         <td className="p-3">
                           <div className="flex gap-3">
                             <button
+                              onClick={() => {
+                                setLinkingMenuItem(i);
+                                loadModifierGroupsForMenuItem(i.id);
+                                setShowLinkModal(true);
+                              }}
+                              className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
+                              title="Manage Modifiers"
+                            >
+                              Modifiers
+                            </button>
+                            <button
                               onClick={() => startEdit(i)}
                               className="text-black hover:text-gray-900 text-sm font-medium transition-colors"
                             >
@@ -564,6 +1046,39 @@ export default function Menu() {
                       </p>
                     </div>
                   )}
+
+                  {/* Linked Modifier Groups */}
+                  <div className="pt-4 border-t">
+                    <h3 className="text-base font-medium text-gray-900 mb-3">Linked Modifier Groups</h3>
+                    {menuItemModifierGroups[selectedItem.id] && menuItemModifierGroups[selectedItem.id].length > 0 ? (
+                      <div className="space-y-2">
+                        {menuItemModifierGroups[selectedItem.id].map((link) => (
+                          <div key={link.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                            <span className="text-sm text-gray-900">{link.modifierGroup.name}</span>
+                            <button
+                              onClick={() => unlinkModifierGroupFromMenuItem(selectedItem.id, link.modifierGroup.id)}
+                              className="text-xs text-red-600 hover:text-red-800"
+                            >
+                              Unlink
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No modifier groups linked</p>
+                    )}
+                    <button
+                      onClick={() => {
+                        setLinkingMenuItem(selectedItem);
+                        loadModifierGroupsForMenuItem(selectedItem.id);
+                        setShowLinkModal(true);
+                        setSelectedItem(null);
+                      }}
+                      className="mt-3 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
+                    >
+                      Link Modifier Groups
+                    </button>
+                  </div>
 
                   <div className="flex gap-3 pt-4 border-t">
                     <button
@@ -697,6 +1212,177 @@ export default function Menu() {
                     </div>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modifier Modal */}
+        {showModifierModal && selectedModifierGroup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {editingModifierId ? "Edit Modifier" : "Add Modifier to " + selectedModifierGroup.name}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowModifierModal(false);
+                      setEditingModifierId(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                </div>
+                <form onSubmit={editingModifierId ? updateModifier : createModifier} className="space-y-3">
+                  <input
+                    placeholder="Modifier Name (e.g., Small, Large, Extra Cheese)"
+                    className="input-field"
+                    value={modifierForm.name}
+                    onChange={(e) => setModifierForm({ ...modifierForm, name: e.target.value })}
+                    required
+                  />
+                  <input
+                    placeholder="Description (optional)"
+                    className="input-field"
+                    value={modifierForm.description}
+                    onChange={(e) => setModifierForm({ ...modifierForm, description: e.target.value })}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="Additional Price"
+                      className="input-field"
+                      value={modifierForm.price}
+                      onChange={(e) => setModifierForm({ ...modifierForm, price: e.target.value })}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Display Order"
+                      className="input-field"
+                      value={modifierForm.displayOrder}
+                      onChange={(e) => setModifierForm({ ...modifierForm, displayOrder: e.target.value })}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={modifierForm.isActive}
+                      onChange={(e) => setModifierForm({ ...modifierForm, isActive: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-700">Active</span>
+                  </label>
+                  <div className="flex gap-2 pt-2">
+                    <button type="submit" className="btn-primary flex-1">
+                      {editingModifierId ? "Update" : "Create"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowModifierModal(false);
+                        setEditingModifierId(null);
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Link Modifier Groups to Menu Item Modal */}
+        {showLinkModal && linkingMenuItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Link Modifier Groups to {linkingMenuItem.name}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowLinkModal(false);
+                      setLinkingMenuItem(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Available Modifier Groups</h4>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {modifierGroups
+                        .filter(group => {
+                          const linked = menuItemModifierGroups[linkingMenuItem.id] || [];
+                          return !linked.some(l => l.modifierGroup.id === group.id);
+                        })
+                        .map((group) => (
+                          <div key={group.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <span className="font-medium text-gray-900">{group.name}</span>
+                              {group.description && (
+                                <p className="text-xs text-gray-500 mt-1">{group.description}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => linkModifierGroupToMenuItem(linkingMenuItem.id, group.id)}
+                              className="px-3 py-1 bg-black text-white rounded hover:bg-gray-800 text-sm"
+                            >
+                              Link
+                            </button>
+                          </div>
+                        ))}
+                      {modifierGroups.filter(group => {
+                        const linked = menuItemModifierGroups[linkingMenuItem.id] || [];
+                        return !linked.some(l => l.modifierGroup.id === group.id);
+                      }).length === 0 && (
+                        <p className="text-sm text-gray-500 text-center py-4">All modifier groups are linked</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {menuItemModifierGroups[linkingMenuItem.id] && menuItemModifierGroups[linkingMenuItem.id].length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Linked Modifier Groups</h4>
+                      <div className="space-y-2">
+                        {menuItemModifierGroups[linkingMenuItem.id].map((link) => (
+                          <div key={link.id} className="flex justify-between items-center p-3 bg-gray-100 rounded-lg">
+                            <span className="font-medium text-gray-900">{link.modifierGroup.name}</span>
+                            <button
+                              onClick={() => unlinkModifierGroupFromMenuItem(linkingMenuItem.id, link.modifierGroup.id)}
+                              className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+                            >
+                              Unlink
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end pt-4 border-t">
+                    <button
+                      onClick={() => {
+                        setShowLinkModal(false);
+                        setLinkingMenuItem(null);
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

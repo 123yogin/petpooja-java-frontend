@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import API from "../api/axios";
+import ModifierSelector from "../components/ModifierSelector";
 
 export default function CustomerOrder() {
   const [searchParams] = useSearchParams();
@@ -22,6 +23,8 @@ export default function CustomerOrder() {
   const [bill, setBill] = useState(null);
   const [showBill, setShowBill] = useState(false);
   const [generatingBill, setGeneratingBill] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState(null);
+  const [showModifierSelector, setShowModifierSelector] = useState(false);
 
   useEffect(() => {
     if (!tableId) {
@@ -132,27 +135,54 @@ export default function CustomerOrder() {
   };
 
   const addToCart = (menuItem) => {
-    const existingItem = cart.find(item => item.menuItemId === menuItem.id);
-    if (existingItem) {
-      setCart(cart.map(item =>
-        item.menuItemId === menuItem.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ));
-    } else {
-      setCart([...cart, {
-        menuItemId: menuItem.id,
-        name: menuItem.name,
-        price: menuItem.price,
-        quantity: 1
-      }]);
-    }
-    toast.success(`${menuItem.name} added to cart`);
+    // Show modifier selector first
+    setSelectedMenuItem(menuItem);
+    setShowModifierSelector(true);
   };
 
-  const updateQuantity = (menuItemId, change) => {
-    setCart(cart.map(item => {
-      if (item.menuItemId === menuItemId) {
+  const handleModifiersSelected = (modifiers) => {
+    if (!selectedMenuItem) return;
+    
+    // Create a unique key for this item+modifiers combination
+    const modifierKey = JSON.stringify(modifiers.map(m => m.modifierId).sort());
+    
+    // Check if exact same item with same modifiers exists
+    const existingItem = cart.find(item => {
+      if (item.menuItemId !== selectedMenuItem.id) return false;
+      const existingModifierKey = item.modifiers 
+        ? JSON.stringify(item.modifiers.map(m => m.modifierId).sort())
+        : "[]";
+      return existingModifierKey === modifierKey;
+    });
+    
+    if (existingItem) {
+      setCart(cart.map(item => {
+        if (item.menuItemId === selectedMenuItem.id) {
+          const existingModifierKey = item.modifiers 
+            ? JSON.stringify(item.modifiers.map(m => m.modifierId).sort())
+            : "[]";
+          if (existingModifierKey === modifierKey) {
+            return { ...item, quantity: item.quantity + 1 };
+          }
+        }
+        return item;
+      }));
+    } else {
+      setCart([...cart, {
+        menuItemId: selectedMenuItem.id,
+        name: selectedMenuItem.name,
+        price: selectedMenuItem.price,
+        quantity: 1,
+        modifiers: modifiers.map(m => ({ modifierId: m.modifierId }))
+      }]);
+    }
+    toast.success(`${selectedMenuItem.name} added to cart`);
+    setSelectedMenuItem(null);
+  };
+
+  const updateQuantity = (menuItemId, change, itemIndex) => {
+    setCart(cart.map((item, idx) => {
+      if (idx === itemIndex) {
         const newQuantity = item.quantity + change;
         if (newQuantity <= 0) {
           return null;
@@ -168,7 +198,15 @@ export default function CustomerOrder() {
   };
 
   const getTotal = () => {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return cart.reduce((sum, item) => {
+      const basePrice = item.price * item.quantity;
+      const modifierPrice = (item.modifiers || []).reduce((modSum, mod) => {
+        // Modifier price is per unit, so multiply by quantity
+        const modPrice = mod.price || mod.menuModifier?.price || 0;
+        return modSum + modPrice * item.quantity;
+      }, 0);
+      return sum + basePrice + modifierPrice;
+    }, 0);
   };
 
   const generateBill = async () => {
@@ -231,7 +269,8 @@ export default function CustomerOrder() {
         tableId: tableId,
         items: cart.map(item => ({
           menuItemId: item.menuItemId,
-          quantity: item.quantity
+          quantity: item.quantity,
+          modifiers: item.modifiers || [] // Include modifiers
         }))
       };
 
@@ -414,35 +453,53 @@ export default function CustomerOrder() {
               ) : (
                 <>
                   <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
-                    {cart.map((item) => (
-                      <div key={item.menuItemId} className="flex items-center justify-between border-b pb-3">
+                    {cart.map((item, idx) => {
+                      const modifierTotal = (item.modifiers || []).reduce((sum, mod) => {
+                        const modPrice = mod.price || mod.menuModifier?.price || 0;
+                        return sum + modPrice;
+                      }, 0);
+                      const itemTotal = (item.price + modifierTotal) * item.quantity;
+                      return (
+                      <div key={`${item.menuItemId}-${idx}`} className="flex items-center justify-between border-b pb-3">
                         <div className="flex-1">
                           <p className="font-medium text-gray-800">{item.name}</p>
-                          <p className="text-sm text-gray-600">₹{item.price.toFixed(2)} × {item.quantity}</p>
+                          {item.modifiers && item.modifiers.length > 0 && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {item.modifiers.map((mod, modIdx) => (
+                                <span key={modIdx} className="mr-2">+ {mod.name || mod.menuModifier?.name}</span>
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-sm text-gray-600">
+                            ₹{item.price.toFixed(2)} × {item.quantity}
+                            {modifierTotal > 0 && ` + ₹${modifierTotal.toFixed(2)} (modifiers)`}
+                            {` = ₹${itemTotal.toFixed(2)}`}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => updateQuantity(item.menuItemId, -1)}
+                            onClick={() => updateQuantity(item.menuItemId, -1, idx)}
                             className="bg-gray-200 text-gray-700 w-8 h-8 rounded-full hover:bg-gray-300"
                           >
                             -
                           </button>
                           <span className="w-8 text-center">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.menuItemId, 1)}
+                            onClick={() => updateQuantity(item.menuItemId, 1, idx)}
                             className="bg-gray-200 text-gray-700 w-8 h-8 rounded-full hover:bg-gray-300"
                           >
                             +
                           </button>
                           <button
-                            onClick={() => removeFromCart(item.menuItemId)}
+                            onClick={() => setCart(cart.filter((_, i) => i !== idx))}
                             className="ml-2 text-gray-700 hover:text-gray-900"
                           >
                             ×
                           </button>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <div className="border-t pt-4">
                     <div className="space-y-2 mb-4">
@@ -481,6 +538,17 @@ export default function CustomerOrder() {
           </div>
         </div>
       </div>
+
+      {/* Modifier Selector Modal */}
+      <ModifierSelector
+        menuItemId={selectedMenuItem?.id}
+        isOpen={showModifierSelector}
+        onClose={() => {
+          setShowModifierSelector(false);
+          setSelectedMenuItem(null);
+        }}
+        onModifiersSelected={handleModifiersSelected}
+      />
 
       {/* Bill Display Modal */}
       {showBill && bill && (
